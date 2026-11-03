@@ -22,6 +22,7 @@ export type Order = {
   city: string;
   address: string;
   pay: "mpesa" | "card";
+  receipt?: string;
   lines: Line[];
   total: number;
   note: string;

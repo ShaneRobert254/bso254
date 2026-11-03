@@ -26,10 +26,11 @@ function OrderPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <p className="text-xs tracking-[0.2em] text-primary">ORDER RESERVED</p>
+      <p className="text-xs tracking-[0.2em] text-primary">PAID WITH M-PESA</p>
       <h1 className="font-display text-6xl">{order.id}</h1>
       <p className="mt-2 text-muted">
-        {order.name}, we saved this for {order.email}. {order.pay === "mpesa" ? `M-Pesa phone ${order.phone}.` : `Card checkout noted for ${order.phone}.`}
+        {order.name}, payment is confirmed for {order.email}. M-Pesa phone {order.phone}.
+        {order.receipt ? ` Reference ${order.id}.` : ""}
       </p>
       <ul className="panel mt-6 divide-y divide-border">
         {order.lines.map((line) => (

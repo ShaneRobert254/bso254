@@ -7,7 +7,7 @@ export const site = {
   city: "Kenya",
   /** Leave blank until your YouTube video id is ready. A visualizer plays instead. */
   youtubeId: "",
-  /** Your M-Pesa till or paybill. Shown on checkout once you fill it in. */
+  /** Shown only as a label. The live prompt uses the Daraja keys on the host. */
   mpesaTill: "",
   socials: {
     youtube: "https://www.youtube.com/results?search_query=BSO254",

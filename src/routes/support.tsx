@@ -12,7 +12,7 @@ const faqs = [
   },
   {
     q: "Do you ship merch?",
-    a: "The bag collects a Kenyan delivery address. Treat checkout as a reservation until your M-Pesa till is filled in and you confirm the order by phone or email.",
+    a: "Yes, inside Kenya. Checkout asks for a city and address, then sends an M-Pesa prompt. The piece ships after Safaricom confirms the PIN.",
   },
   {
     q: "How do I put the real songs in?",

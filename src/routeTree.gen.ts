@@ -27,6 +27,7 @@ import { Route as MerchSlugRouteImport } from './routes/merch.$slug'
 import { Route as MusicIndexRouteImport } from './routes/music.index'
 import { Route as MusicSlugRouteImport } from './routes/music.$slug'
 import { Route as OrderIdRouteImport } from './routes/order.$id'
+import { Route as ApiMpesaCallbackRouteImport } from './routes/api.mpesa.callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -118,6 +119,11 @@ const OrderIdRoute = OrderIdRouteImport.update({
   path: '/order/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMpesaCallbackRoute = ApiMpesaCallbackRouteImport.update({
+  id: '/api/mpesa/callback',
+  path: '/api/mpesa/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/order/$id': typeof OrderIdRoute
   '/merch/': typeof MerchIndexRoute
   '/music/': typeof MusicIndexRoute
+  '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/order/$id': typeof OrderIdRoute
   '/merch': typeof MerchIndexRoute
   '/music': typeof MusicIndexRoute
+  '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/order/$id': typeof OrderIdRoute
   '/merch/': typeof MerchIndexRoute
   '/music/': typeof MusicIndexRoute
+  '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/order/$id'
     | '/merch/'
     | '/music/'
+    | '/api/mpesa/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/order/$id'
     | '/merch'
     | '/music'
+    | '/api/mpesa/callback'
   id:
     | '__root__'
     | '/'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/order/$id'
     | '/merch/'
     | '/music/'
+    | '/api/mpesa/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -254,6 +266,7 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   OrderIdRoute: typeof OrderIdRoute
+  ApiMpesaCallbackRoute: typeof ApiMpesaCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -384,6 +397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mpesa/callback': {
+      id: '/api/mpesa/callback'
+      path: '/api/mpesa/callback'
+      fullPath: '/api/mpesa/callback'
+      preLoaderRoute: typeof ApiMpesaCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -426,6 +446,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   OrderIdRoute: OrderIdRoute,
+  ApiMpesaCallbackRoute: ApiMpesaCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

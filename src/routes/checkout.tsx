@@ -1,12 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { PageHero } from "@/components/cards";
 import { kes } from "@/lib/format";
-import { site } from "@/lib/site";
-import { cartTotal, useCart, useOrders, type Order } from "@/lib/store";
+import { checkMpesa, mpesaConfig, startMpesa } from "@/lib/mpesa";
+import type { PricedLine } from "@/lib/quote";
+import { cartTotal, useCart, useOrders } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
 
 export const Route = createFileRoute("/checkout")({ component: CheckoutPage });
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function CheckoutPage() {
   const ready = useHydrated();
@@ -21,92 +26,145 @@ function CheckoutPage() {
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
-  const [pay, setPay] = useState<Order["pay"]>("mpesa");
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
+  const [waiting, setWaiting] = useState("");
+  const [till, setTill] = useState("");
+  const [kind, setKind] = useState("paybill");
+  const [live, setLive] = useState<boolean | null>(null);
 
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    if (shown.length === 0) {
-      setError("Your bag is empty.");
-      return;
-    }
-    if (!name.trim() || !email.includes("@") || phone.trim().length < 8) {
-      setError("Name, email, and a phone number are required.");
-      return;
-    }
-    if (needsAddress && (!city.trim() || !address.trim())) {
-      setError("Merch needs a city and a delivery address.");
-      return;
-    }
-    const id = `BSO-${Date.now().toString(36).toUpperCase()}`;
+  useEffect(() => {
+    void mpesaConfig()
+      .then((config) => {
+        setLive(config.configured);
+        setTill(config.shortcode);
+        setKind(config.kind);
+      })
+      .catch(() => setLive(false));
+  }, []);
+
+  async function finish(paid: { orderId: string; total: number; lines: PricedLine[]; receipt?: string }) {
     place({
-      id,
+      id: paid.orderId,
       createdAt: new Date().toISOString(),
       name: name.trim(),
       email: email.trim(),
       phone: phone.trim(),
       city: city.trim(),
       address: address.trim(),
-      pay,
-      lines: shown,
-      total: cartTotal(shown),
+      pay: "mpesa",
+      lines: paid.lines.map((line) => ({ ...line, key: `${line.kind}:${line.ref}:${line.trackId ?? line.size ?? "pack"}` })),
+      total: paid.total,
       note: note.trim(),
+      receipt: paid.receipt,
     });
     clear();
-    void navigate({ to: "/order/$id", params: { id } });
+    await navigate({ to: "/order/$id", params: { id: paid.orderId } });
+  }
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    setError("");
+    if (shown.length === 0) {
+      setError("Your bag is empty.");
+      return;
+    }
+    if (!name.trim() || !email.includes("@")) {
+      setError("Name and email are required.");
+      return;
+    }
+    if (needsAddress && (!city.trim() || !address.trim())) {
+      setError("Merch needs a city and a delivery address.");
+      return;
+    }
+    setWaiting("Sending the M-Pesa prompt…");
+    try {
+      const started = await startMpesa({
+        data: {
+          phone,
+          items: shown.map((line) => ({
+            kind: line.kind,
+            ref: line.ref,
+            trackId: line.trackId,
+            qty: line.qty,
+            size: line.size,
+          })),
+        },
+      });
+      if (!started.ok) {
+        setWaiting("");
+        setError(started.error);
+        return;
+      }
+      setWaiting("Check your phone and enter your M-Pesa PIN.");
+      for (let attempt = 0; attempt < 16; attempt += 1) {
+        await sleep(4000);
+        const check = await checkMpesa({ data: { checkoutRequestId: started.checkoutRequestId } });
+        if (check.status === "paid") {
+          await finish({ ...started, receipt: check.receipt });
+          return;
+        }
+        if (check.status === "failed") {
+          setWaiting("");
+          setError(check.detail);
+          return;
+        }
+      }
+      setWaiting("");
+      setError("No PIN came through in time. If you were not charged, you can try again. Do not pay twice.");
+    } catch (reason) {
+      setWaiting("");
+      setError(reason instanceof Error ? reason.message : "M-Pesa could not start.");
+    }
   }
 
   return (
     <div>
-      <PageHero kicker="CHECKOUT" title="Place your order" text="Digital music lands in your library on this device. Merch is a delivery reservation." />
+      <PageHero kicker="CHECKOUT" title="Pay with M-Pesa" text="Safaricom sends a prompt to your phone. Music unlocks here only after the PIN goes through." />
       <form onSubmit={submit} className="mx-auto grid max-w-6xl gap-6 px-4 py-8 lg:grid-cols-[1fr_300px]">
         <div className="panel grid gap-3 p-4">
           <label className="grid gap-1 text-sm text-muted">
             Name
-            <input className="field" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" />
+            <input className="field" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" disabled={Boolean(waiting)} />
           </label>
           <label className="grid gap-1 text-sm text-muted">
             Email
-            <input className="field" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" />
+            <input className="field" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" disabled={Boolean(waiting)} />
           </label>
           <label className="grid gap-1 text-sm text-muted">
-            Phone {pay === "mpesa" ? "(M-Pesa)" : ""}
-            <input className="field" inputMode="tel" value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" placeholder="07…" />
+            M-Pesa phone
+            <input className="field" inputMode="tel" value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" placeholder="07…" disabled={Boolean(waiting)} />
           </label>
           {needsAddress ? (
             <>
               <label className="grid gap-1 text-sm text-muted">
                 City
-                <input className="field" value={city} onChange={(event) => setCity(event.target.value)} />
+                <input className="field" value={city} onChange={(event) => setCity(event.target.value)} disabled={Boolean(waiting)} />
               </label>
               <label className="grid gap-1 text-sm text-muted">
                 Delivery address
-                <input className="field" value={address} onChange={(event) => setAddress(event.target.value)} />
+                <input className="field" value={address} onChange={(event) => setAddress(event.target.value)} disabled={Boolean(waiting)} />
               </label>
             </>
           ) : null}
-          <fieldset className="grid gap-2">
-            <legend className="text-sm text-muted">Pay with</legend>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="radio" name="pay" checked={pay === "mpesa"} onChange={() => setPay("mpesa")} />
-              M-Pesa {site.mpesaTill ? `· till ${site.mpesaTill}` : ""}
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="radio" name="pay" checked={pay === "card"} onChange={() => setPay("card")} />
-              Card
-            </label>
-          </fieldset>
+          <p className="text-sm text-fg">
+            Pay with M-Pesa{till ? ` · ${kind} ${till}` : ""}
+          </p>
           <label className="grid gap-1 text-sm text-muted">
             Note
-            <input className="field" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Optional" />
+            <input className="field" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Optional" disabled={Boolean(waiting)} />
           </label>
-          <p className="text-xs text-dim">
-            This checkout saves the order in your browser so you can run the shop before a live till or card processor is connected. Do not collect real payment until that is switched on.
-          </p>
+          {live === false ? (
+            <p className="text-xs text-dim">
+              The prompt is not switched on yet. Safaricom Daraja keys still need to be added on the host. Nothing is charged until then.
+            </p>
+          ) : (
+            <p className="text-xs text-dim">You will get an M-Pesa prompt. Enter your PIN to pay {kes(cartTotal(shown))}.</p>
+          )}
+          {waiting ? <p className="text-sm text-fg">{waiting}</p> : null}
           {error ? <p className="text-sm text-primary">{error}</p> : null}
-          <button type="submit" className="btn-solid" disabled={shown.length === 0}>
-            Place order · {kes(cartTotal(shown))}
+          <button type="submit" className="btn-solid" disabled={shown.length === 0 || Boolean(waiting)}>
+            {waiting ? "Waiting for PIN…" : `Pay with M-Pesa · ${kes(cartTotal(shown))}`}
           </button>
         </div>
         <aside className="panel h-fit p-4">
