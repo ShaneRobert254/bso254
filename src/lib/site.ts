@@ -7,8 +7,8 @@ export const site = {
   city: "Kenya",
   /** Leave blank until your YouTube video id is ready. A visualizer plays instead. */
   youtubeId: "",
-  /** Shown only as a label. The live prompt uses the Daraja keys on the host. */
-  mpesaTill: "",
+  /** Fans pay this Pochi / business line from the M-Pesa menu. */
+  mpesaBusiness: "0111209244",
   socials: {
     youtube: "https://www.youtube.com/results?search_query=BSO254",
     instagram: "https://www.instagram.com/explore/tags/bso254/",

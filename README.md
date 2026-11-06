@@ -13,15 +13,7 @@ Open the site on port 8080.
 
 ## M-Pesa
 
-Checkout sends a Safaricom STK prompt. The album unlocks only after the PIN is confirmed. Nothing is charged until these keys are set on the host (Vercel → Settings → Environment Variables). Do not put them in the repo.
-
-- `MPESA_CONSUMER_KEY`
-- `MPESA_CONSUMER_SECRET`
-- `MPESA_SHORTCODE` — paybill, or the till if `MPESA_TYPE=till`
-- `MPESA_PASSKEY`
-- `MPESA_ENV` — `sandbox` or `live`
-- `MPESA_TYPE` — `paybill` (default) or `till`
-- `MPESA_CALLBACK_URL` — optional public `https://…/api/mpesa/callback`
+Fans pay the business number in `src/lib/site.ts` (`mpesaBusiness`, currently `0111209244`) with Lipa na M-Pesa → Pochi la Biashara. They paste the code from the M-Pesa text and can send the receipt to that number on WhatsApp. This is not a Safaricom PIN prompt. A till or paybill with Daraja keys would be required for that.
 
 ## Free and public
 
@@ -29,7 +21,7 @@ The code can live in a public GitHub repo at no cost. GitHub Pages only serves p
 
 1. Keep this repo public on GitHub.
 2. Import it on [Vercel](https://vercel.com) (Hobby plan is free) or Netlify.
-3. Vercel runs the Node build and gives you a public link. Add the M-Pesa keys there.
+3. Vercel runs the Node build and gives you a public link.
 
 ## Make it yours
 

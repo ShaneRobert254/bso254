@@ -12,7 +12,7 @@ const faqs = [
   },
   {
     q: "Do you ship merch?",
-    a: "Yes, inside Kenya. Checkout asks for a city and address, then sends an M-Pesa prompt. The piece ships after Safaricom confirms the PIN.",
+    a: "Yes, inside Kenya. Pay the business number on checkout with Pochi la Biashara, then send the receipt on WhatsApp. The piece ships after that text is on the business line.",
   },
   {
     q: "How do I put the real songs in?",
@@ -20,7 +20,7 @@ const faqs = [
   },
   {
     q: "How do I change prices, the till, or social links?",
-    a: "Prices live with the catalog. The till, email, and profile links live in the site settings file at the top of the project.",
+    a: "Prices live with the catalog. The business number, email, and profile links live in the site settings file at the top of the project.",
   },
 ];
 

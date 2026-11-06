@@ -1,9 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { kes } from "@/lib/format";
-import { useOrders } from "@/lib/store";
+import { kes, spacedLine } from "@/lib/format";
+import { site } from "@/lib/site";
+import { useOrders, type Order } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
 
 export const Route = createFileRoute("/order/$id")({ component: OrderPage });
+
+function receiptText(order: Order) {
+  const items = order.lines
+    .map((line) => `${line.title}${line.size ? ` (${line.size})` : ""}${line.qty > 1 ? ` x${line.qty}` : ""}`)
+    .join(", ");
+  const ship = order.address ? `\nShip to ${order.address}, ${order.city}` : "";
+  return `BSO254 ${order.id}\n${order.name}\n${order.email}\nPaid from ${order.phone}\n${items}\n${kes(order.total)}\nM-Pesa ${order.receipt ?? ""}${ship}`;
+}
 
 function OrderPage() {
   const { id } = Route.useParams();
@@ -23,14 +32,14 @@ function OrderPage() {
     );
   }
   const hasMusic = order.lines.some((line) => line.kind === "music");
+  const whatsapp = `https://wa.me/254${site.mpesaBusiness.slice(1)}?text=${encodeURIComponent(receiptText(order))}`;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <p className="text-xs tracking-[0.2em] text-primary">PAID WITH M-PESA</p>
+      <p className="text-xs tracking-[0.2em] text-primary">SENT TO {spacedLine(site.mpesaBusiness)}</p>
       <h1 className="font-display text-6xl">{order.id}</h1>
       <p className="mt-2 text-muted">
-        {order.name}, payment is confirmed for {order.email}. M-Pesa phone {order.phone}.
-        {order.receipt ? ` Reference ${order.id}.` : ""}
+        {order.name}, M-Pesa code {order.receipt}. Paid from {order.phone}. Send this receipt so the order can be matched to the text on the business number.
       </p>
       <ul className="panel mt-6 divide-y divide-border">
         {order.lines.map((line) => (
@@ -50,7 +59,8 @@ function OrderPage() {
       </ul>
       {needsShip(order.address) ? <p className="mt-4 text-sm text-muted">Ship to {order.address}, {order.city}.</p> : null}
       <div className="mt-6 flex flex-wrap gap-3">
-        {hasMusic ? <Link to="/library" className="btn-solid">Open library</Link> : null}
+        <a className="btn-solid" href={whatsapp} target="_blank" rel="noreferrer">Send receipt on WhatsApp</a>
+        {hasMusic ? <Link to="/library" className="btn-line">Open library</Link> : null}
         <Link to="/music" className="btn-line">Keep browsing</Link>
       </div>
     </div>
