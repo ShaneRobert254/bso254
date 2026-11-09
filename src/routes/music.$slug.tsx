@@ -2,9 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Download, Pause, Play, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { hashSeed, renderPreviewWav } from "@/lib/beat";
-import { getRelease } from "@/lib/catalog";
 import { clock, kes, PREVIEW_SECONDS } from "@/lib/format";
 import { usePlayer } from "@/lib/player";
+import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
 import { ownsRelease, ownsTrack, useCart, useOrders } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
@@ -13,7 +13,8 @@ export const Route = createFileRoute("/music/$slug")({ component: ReleasePage })
 
 function ReleasePage() {
   const { slug } = Route.useParams();
-  const release = getRelease(slug);
+  const { releases } = useShop();
+  const release = releases.find((item) => item.slug === slug);
   const player = usePlayer();
   const add = useCart((state) => state.add);
   const orders = useOrders((state) => state.orders);

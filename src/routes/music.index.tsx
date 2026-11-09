@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHero, ReleaseCard } from "@/components/cards";
-import { releases } from "@/lib/catalog";
 import { cn } from "@/lib/cn";
+import { useShop } from "@/lib/shop";
 
 export const Route = createFileRoute("/music/")({ component: MusicPage });
 
 const filters = ["All", "Albums", "Singles", "Unreleased"] as const;
 
 function MusicPage() {
+  const { releases } = useShop();
   const [filter, setFilter] = useState<(typeof filters)[number]>("All");
   const shown = releases.filter((release) => {
     if (filter === "Albums") return release.type === "album";

@@ -2,16 +2,17 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { getProduct } from "@/lib/catalog";
 import { cn } from "@/lib/cn";
 import { kes } from "@/lib/format";
+import { useShop } from "@/lib/shop";
 import { useCart } from "@/lib/store";
 
 export const Route = createFileRoute("/merch/$slug")({ component: ProductPage });
 
 function ProductPage() {
   const { slug } = Route.useParams();
-  const product = getProduct(slug);
+  const { products } = useShop();
+  const product = products.find((item) => item.slug === slug);
   const add = useCart((state) => state.add);
   const [size, setSize] = useState(product?.sizes[0] ?? "");
   if (!product) {

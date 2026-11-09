@@ -23,7 +23,11 @@ The code can live in a public GitHub repo at no cost. GitHub Pages only serves p
 2. Import it on [Vercel](https://vercel.com) (Hobby plan is free) or Netlify.
 3. Vercel runs the Node build and gives you a public link.
 
-## Make it yours
+## Studio
+
+`/admin` is the private page for changing music and merch. It is not linked in the main menu. Sign in, edit, then choose **Update the site**. The shop reads that saved catalog.
+
+On a host, set `ADMIN_PASSWORD` in the environment so the studio stays locked. Do not put that password in the repo.
 
 - `src/lib/site.ts` — email, YouTube video id, social links
 - `src/lib/catalog.ts` — releases, track prices, merch, gallery

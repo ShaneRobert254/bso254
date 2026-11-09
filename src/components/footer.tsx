@@ -31,6 +31,7 @@ export function Footer() {
           <Link to="/terms" className="hover:text-fg">Terms & Conditions</Link>
           <Link to="/support" className="hover:text-fg">Support</Link>
           <Link to="/library" className="hover:text-fg">Library</Link>
+          <Link to="/admin" className="hover:text-fg">Studio</Link>
         </div>
       </div>
       <div className="border-t border-border">

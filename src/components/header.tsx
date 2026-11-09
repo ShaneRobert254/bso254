@@ -14,8 +14,8 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Logo } from "@/components/logo";
-import { products, releases } from "@/lib/catalog";
 import { cn } from "@/lib/cn";
+import { useShop } from "@/lib/shop";
 import { cartCount, useCart } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
 
@@ -36,6 +36,7 @@ export function Header() {
   const [searching, setSearching] = useState(false);
   const hydrated = useHydrated();
   const count = useCart((state) => cartCount(state.lines));
+  const { releases, products } = useShop();
   const shown = hydrated ? count : 0;
 
   const results = useMemo(() => {
@@ -60,7 +61,7 @@ export function Header() {
         image: product.image,
       }));
     return [...music, ...merch].slice(0, 8);
-  }, [query]);
+  }, [products, query, releases]);
 
   function openResult(result: (typeof results)[number]) {
     setSearching(false);

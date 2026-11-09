@@ -2,9 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Download, Play } from "lucide-react";
 import { hashSeed, renderPreviewWav } from "@/lib/beat";
 import { PageHero } from "@/components/cards";
-import { releases } from "@/lib/catalog";
 import { clock, PREVIEW_SECONDS } from "@/lib/format";
 import { usePlayer } from "@/lib/player";
+import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
 import { ownsTrack, useOrders } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
@@ -15,6 +15,7 @@ function LibraryPage() {
   const ready = useHydrated();
   const orders = useOrders((state) => state.orders);
   const player = usePlayer();
+  const { releases } = useShop();
   const owned = ready
     ? releases.flatMap((release) =>
         release.tracks

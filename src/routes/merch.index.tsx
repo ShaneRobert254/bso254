@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHero, ProductCard } from "@/components/cards";
-import { products } from "@/lib/catalog";
+import { useShop } from "@/lib/shop";
 
 export const Route = createFileRoute("/merch/")({ component: MerchPage });
 
 function MerchPage() {
+  const { products } = useShop();
   return (
     <div>
       <PageHero

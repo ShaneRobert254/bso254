@@ -1,11 +1,14 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
+import { getShopCatalog } from "@/lib/admin";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { Shell } from "@/components/shell";
 import { PlayerProvider } from "@/lib/player";
+import { ShopProvider } from "@/lib/shop";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
+  loader: () => getShopCatalog(),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -24,7 +27,12 @@ export const Route = createRootRoute({
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
     ],
   }),
-  component: () => (
+  component: Root,
+});
+
+function Root() {
+  const catalog = Route.useLoaderData();
+  return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
@@ -33,13 +41,15 @@ export const Route = createRootRoute({
         <PreviewHostBridge />
         <AuthProvider>
           <PlayerProvider>
-            <Shell>
-              <Outlet />
-            </Shell>
+            <ShopProvider value={catalog}>
+              <Shell>
+                <Outlet />
+              </Shell>
+            </ShopProvider>
           </PlayerProvider>
         </AuthProvider>
         <Scripts />
       </body>
     </html>
-  ),
-});
+  );
+}

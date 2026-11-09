@@ -3,15 +3,17 @@ import { ArrowRight, Lock, Pause, Play } from "lucide-react";
 import { useState } from "react";
 import { Crown } from "@/components/logo";
 import { JoinForm } from "@/components/join-form";
-import { gallery, products, releases, type Release } from "@/lib/catalog";
+import { gallery, type Release } from "@/lib/catalog";
 import { kes } from "@/lib/format";
 import { usePlayer } from "@/lib/player";
+import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   const player = usePlayer();
+  const { releases, products } = useShop();
   const [video, setVideo] = useState(false);
   const leadRelease = releases[0];
   const lead = leadRelease.tracks[0];
