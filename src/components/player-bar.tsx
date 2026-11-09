@@ -15,7 +15,7 @@ export function PlayerBar() {
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-semibold text-fg">{player.now.title}</p>
             <span className="hidden rounded-full border border-border px-2 py-0.5 text-[10px] tracking-wider text-dim uppercase sm:inline">
-              Preview
+              {player.now.src ? "Song" : "Preview"}
             </span>
           </div>
           <p className="truncate text-xs text-muted">{player.now.artist}</p>

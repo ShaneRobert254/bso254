@@ -55,6 +55,8 @@ function LibraryPage() {
                       title: track.title,
                       artist: site.artist,
                       cover: release.cover,
+                      src: track.audio,
+                      duration: track.duration,
                     })
                   }
                 >
@@ -65,6 +67,13 @@ function LibraryPage() {
                   type="button"
                   className="btn-solid"
                   onClick={() => {
+                    if (track.audio) {
+                      const link = document.createElement("a");
+                      link.href = track.audio;
+                      link.download = track.audio.split("/").pop() || `${track.id}.mp3`;
+                      link.click();
+                      return;
+                    }
                     void renderPreviewWav(hashSeed(track.id), PREVIEW_SECONDS).then((blob) => {
                       const url = URL.createObjectURL(blob);
                       const link = document.createElement("a");

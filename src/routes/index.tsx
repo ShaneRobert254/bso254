@@ -25,6 +25,8 @@ function Home() {
       title: track.title,
       artist: site.artist,
       cover: release.cover,
+      src: track.audio,
+      duration: track.duration,
     });
   }
 

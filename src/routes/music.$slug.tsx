@@ -60,7 +60,9 @@ function ReleasePage() {
           </button>
         )}
         <p className="mt-3 text-xs text-dim">
-          Previews are {PREVIEW_SECONDS}s studio sketches so the shop works before master files are uploaded.
+          {release.tracks.some((track) => track.audio)
+            ? "Play uses the song file from Studio. Tracks without a file still play a short sketch."
+            : `No song file yet. Previews are ${PREVIEW_SECONDS}s sketches until you upload an MP3 or WAV in Studio.`}
         </p>
       </div>
       <ol className="panel divide-y divide-border">
@@ -82,6 +84,8 @@ function ReleasePage() {
                       title: track.title,
                       artist: `${site.artist} — ${release.title}`,
                       cover: release.cover,
+                      src: track.audio,
+                      duration: track.duration,
                     });
                   }
                 }}

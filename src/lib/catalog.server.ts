@@ -1,4 +1,4 @@
-import { scryptSync, timingSafeEqual } from "node:crypto";
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { useSession } from "@tanstack/react-start/server";
@@ -26,6 +26,20 @@ export async function readLiveCatalog(): Promise<ShopCatalog> {
     // The built-in catalog is the shop until the studio saves one.
   }
   return fallback();
+}
+
+export async function saveAudio(name: string, data: string) {
+  const lower = name.toLowerCase();
+  const ext = lower.endsWith(".wav") ? "wav" : lower.endsWith(".mp3") ? "mp3" : "";
+  if (!ext) throw new Error("Use an MP3 or WAV file.");
+  const bytes = Buffer.from(data, "base64");
+  if (bytes.length < 1000) throw new Error("That file looks empty.");
+  if (bytes.length > 12 * 1024 * 1024) throw new Error("Keep the song under 12 MB.");
+  const filename = `${randomBytes(6).toString("hex")}.${ext}`;
+  const dir = path.join(process.cwd(), "public", "media", "audio");
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, filename), bytes);
+  return { audio: `/media/audio/${filename}` };
 }
 
 export async function writeLiveCatalog(input: ShopCatalog) {
@@ -93,12 +107,16 @@ export function sanitizeCatalog(input: ShopCatalog): ShopCatalog {
   const releases = (Array.isArray(input?.releases) ? input.releases : []).slice(0, 40).map((release, index) => {
     const title = text(release?.title, 80) || `Release ${index + 1}`;
     const slug = uniqueSlug(text(release?.slug, 60) || title, index);
-    const tracks = (Array.isArray(release?.tracks) ? release.tracks : []).slice(0, 30).map((track, trackIndex) => ({
-      id: uniqueSlug(text(track?.id, 60) || text(track?.title, 80) || `track-${trackIndex + 1}`, trackIndex),
-      title: text(track?.title, 80) || `Track ${trackIndex + 1}`,
-      duration: clamp(track?.duration, 30, 900, 180),
-      price: clamp(track?.price, 0, 100000, 150),
-    }));
+    const tracks = (Array.isArray(release?.tracks) ? release.tracks : []).slice(0, 30).map((track, trackIndex) => {
+      const audio = audioPath(track?.audio);
+      return {
+        id: uniqueSlug(text(track?.id, 60) || text(track?.title, 80) || `track-${trackIndex + 1}`, trackIndex),
+        title: text(track?.title, 80) || `Track ${trackIndex + 1}`,
+        duration: clamp(track?.duration, 30, 3600, 180),
+        price: clamp(track?.price, 0, 100000, 150),
+        ...(audio ? { audio } : {}),
+      };
+    });
     return {
       slug,
       title,
@@ -137,6 +155,12 @@ export function sanitizeCatalog(input: ShopCatalog): ShopCatalog {
   const productIds = new Set<string>();
   for (const product of products) product.slug = dedupe(product.slug, productIds);
   return { releases, products };
+}
+
+function audioPath(value: unknown) {
+  const raw = text(value, 180);
+  if (raw.startsWith("/media/audio/") && (raw.endsWith(".mp3") || raw.endsWith(".wav"))) return raw;
+  return "";
 }
 
 function text(value: unknown, max: number) {

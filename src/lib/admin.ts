@@ -31,6 +31,19 @@ export const adminLogout = createServerFn({ method: "POST" }).handler(async () =
   return { ok: true as const };
 });
 
+export const adminUploadAudio = createServerFn({ method: "POST" })
+  .validator((input: { name: string; data: string }) => {
+    const name = String(input?.name ?? "");
+    const data = String(input?.data ?? "").replace(/\s/g, "");
+    if (data.length < 100 || data.length > 18_000_000) throw new Error("Keep the song under 12 MB.");
+    return { name, data };
+  })
+  .handler(async ({ data }) => {
+    const { signedIn, saveAudio } = await import("./catalog.server");
+    if (!(await signedIn())) throw new Error("Sign in first.");
+    return saveAudio(data.name, data.data);
+  });
+
 export const adminSave = createServerFn({ method: "POST" })
   .validator((input: ShopCatalog) => input)
   .handler(async ({ data }) => {

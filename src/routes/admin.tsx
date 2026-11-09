@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { adminLogin, adminLogout, adminSave, adminState, getShopCatalog } from "@/lib/admin";
+import { adminLogin, adminLogout, adminSave, adminState, adminUploadAudio, getShopCatalog } from "@/lib/admin";
 import type { Product, Release, Track } from "@/lib/catalog";
 import { kes } from "@/lib/format";
 
@@ -169,13 +169,27 @@ function AdminPage() {
                 </button>
               </div>
               {release.tracks.map((track, trackIndex) => (
-                <div key={`${track.id}-${trackIndex}`} className="grid gap-2 sm:grid-cols-[1fr_100px_100px_auto]">
+                <div key={`${track.id}-${trackIndex}`} className="grid gap-2 border-t border-border pt-2 sm:grid-cols-[1fr_100px_100px_auto]">
                   <input className="field" value={track.title} aria-label="Track title" onChange={(event) => editTrack(index, trackIndex, { title: event.target.value })} />
                   <input className="field" value={String(track.price)} aria-label="Track price" inputMode="numeric" onChange={(event) => editTrack(index, trackIndex, { price: Number(event.target.value) })} />
                   <input className="field" value={String(track.duration)} aria-label="Track seconds" inputMode="numeric" onChange={(event) => editTrack(index, trackIndex, { duration: Number(event.target.value) })} />
                   <button type="button" className="text-sm text-primary" onClick={() => editRelease(index, { tracks: release.tracks.filter((_, item) => item !== trackIndex) })}>
                     Remove
                   </button>
+                  <label className="grid gap-1 text-sm text-muted sm:col-span-4">
+                    Song file (MP3 or WAV, under 12 MB)
+                    <input
+                      className="field"
+                      type="file"
+                      accept=".mp3,.wav,audio/mpeg,audio/wav,audio/x-wav"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        event.target.value = "";
+                        if (file) void uploadSong(index, trackIndex, file);
+                      }}
+                    />
+                    <span className="text-xs text-dim">{track.audio ? `Saved: ${track.audio}` : "No song file yet. The player uses a short sketch until you add one."}</span>
+                  </label>
                 </div>
               ))}
             </div>
@@ -218,6 +232,31 @@ function AdminPage() {
     });
   }
 
+  async function uploadSong(index: number, trackIndex: number, file: File) {
+    const lower = file.name.toLowerCase();
+    if (!lower.endsWith(".mp3") && !lower.endsWith(".wav")) {
+      setError("Use an MP3 or WAV file.");
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      setError("Keep the song under 12 MB.");
+      return;
+    }
+    setError("");
+    setSaving(true);
+    try {
+      const data = await fileToBase64(file);
+      const saved = await adminUploadAudio({ data: { name: file.name, data } });
+      const seconds = await fileSeconds(file);
+      editTrack(index, trackIndex, { audio: saved.audio, ...(seconds ? { duration: seconds } : {}) });
+      toast.success("Song file saved. Press Update the site.");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not upload the song.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function editProduct(index: number, patch: Partial<Product>) {
     setProducts(products.map((product, item) => (item === index ? { ...product, ...patch } : product)));
   }
@@ -230,4 +269,33 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
       <input className="field" value={value} onChange={(event) => onChange(event.target.value)} />
     </label>
   );
+}
+
+function fileToBase64(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const raw = String(reader.result ?? "");
+      const comma = raw.indexOf(",");
+      resolve(comma >= 0 ? raw.slice(comma + 1) : raw);
+    };
+    reader.onerror = () => reject(new Error("Could not read that file."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function fileSeconds(file: File) {
+  return new Promise<number>((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = new Audio(url);
+    audio.onloadedmetadata = () => {
+      const seconds = Math.round(audio.duration);
+      URL.revokeObjectURL(url);
+      resolve(Number.isFinite(seconds) ? seconds : 0);
+    };
+    audio.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(0);
+    };
+  });
 }
