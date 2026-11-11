@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Download, Play } from "lucide-react";
-import { hashSeed, renderPreviewWav } from "@/lib/beat";
 import { PageHero } from "@/components/cards";
-import { clock, PREVIEW_SECONDS } from "@/lib/format";
+import { clock } from "@/lib/format";
+import { downloadIfPaid, playIfPaid } from "@/lib/listen";
 import { usePlayer } from "@/lib/player";
 import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
@@ -49,16 +49,9 @@ function LibraryPage() {
                 <button
                   type="button"
                   className="btn-line"
-                  onClick={() =>
-                    player.play({
-                      id: track.id,
-                      title: track.title,
-                      artist: site.artist,
-                      cover: release.cover,
-                      src: track.audio,
-                      duration: track.duration,
-                    })
-                  }
+                  onClick={() => {
+                    void playIfPaid(player, track, true, { artist: site.artist, cover: release.cover });
+                  }}
                 >
                   <Play className="h-4 w-4" />
                   Play
@@ -67,21 +60,7 @@ function LibraryPage() {
                   type="button"
                   className="btn-solid"
                   onClick={() => {
-                    if (track.audio) {
-                      const link = document.createElement("a");
-                      link.href = track.audio;
-                      link.download = track.audio.split("/").pop() || `${track.id}.mp3`;
-                      link.click();
-                      return;
-                    }
-                    void renderPreviewWav(hashSeed(track.id), PREVIEW_SECONDS).then((blob) => {
-                      const url = URL.createObjectURL(blob);
-                      const link = document.createElement("a");
-                      link.href = url;
-                      link.download = `${site.brand}-${track.id}-preview.wav`;
-                      link.click();
-                      URL.revokeObjectURL(url);
-                    });
+                    void downloadIfPaid(track, true);
                   }}
                 >
                   <Download className="h-4 w-4" />

@@ -2,7 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import type { ShopCatalog } from "@/lib/catalog.server";
 
 export const getShopCatalog = createServerFn({ method: "GET" }).handler(async () => {
-  const { readLiveCatalog } = await import("./catalog.server");
+  const { publicCatalog, readLiveCatalog } = await import("./catalog.server");
+  return publicCatalog(await readLiveCatalog());
+});
+
+export const adminCatalog = createServerFn({ method: "GET" }).handler(async () => {
+  const { readLiveCatalog, signedIn } = await import("./catalog.server");
+  if (!(await signedIn())) throw new Error("Sign in first.");
   return readLiveCatalog();
 });
 
@@ -50,4 +56,27 @@ export const adminSave = createServerFn({ method: "POST" })
     const { signedIn, writeLiveCatalog } = await import("./catalog.server");
     if (!(await signedIn())) throw new Error("Sign in first.");
     return writeLiveCatalog(data);
+  });
+
+export const openTrack = createServerFn({ method: "POST" })
+  .validator((input: { trackId: string }) => {
+    const trackId = String(input?.trackId ?? "");
+    if (!/^[a-z0-9-]{1,60}$/.test(trackId)) throw new Error("Unknown track.");
+    return { trackId };
+  })
+  .handler(async ({ data }) => {
+    const { getCookie, setCookie } = await import("@tanstack/react-start/server");
+    const { grantFiles } = await import("./catalog.server");
+    const files = await grantFiles([data.trackId]);
+    if (files.length === 0) throw new Error("This song is not up yet.");
+    const already = (getCookie("bso_paid") ?? "").split(",").filter(Boolean);
+    const next = [...new Set([...already, ...files])].slice(0, 80);
+    setCookie("bso_paid", next.join(","), {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      secure: false,
+      maxAge: 60 * 60 * 24 * 365,
+    });
+    return { src: `/api/audio/${files[0]}` };
   });

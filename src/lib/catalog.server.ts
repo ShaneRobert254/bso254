@@ -28,6 +28,50 @@ export async function readLiveCatalog(): Promise<ShopCatalog> {
   return fallback();
 }
 
+export function publicCatalog(catalog: ShopCatalog): ShopCatalog {
+  return {
+    products: catalog.products,
+    releases: catalog.releases.map((release) => ({
+      ...release,
+      tracks: release.tracks.map((track) => {
+        const { audio: _audio, ...rest } = track;
+        return { ...rest, hasAudio: Boolean(track.audio) };
+      }),
+    })),
+  };
+}
+
+export async function grantFiles(trackIds: string[]) {
+  const catalog = await readLiveCatalog();
+  const wanted = new Set(trackIds);
+  const files: string[] = [];
+  for (const release of catalog.releases) {
+    for (const track of release.tracks) {
+      if (!wanted.has(track.id) || !track.audio) continue;
+      const name = track.audio.split("/").pop() ?? "";
+      if (/^[a-f0-9]{12}\.(mp3|wav)$/.test(name)) files.push(name);
+    }
+  }
+  return files;
+}
+
+export async function readAudioFile(name: string) {
+  if (!/^[a-f0-9]{12}\.(mp3|wav)$/.test(name)) return null;
+  const candidates = [
+    path.join(process.cwd(), "data", "audio", name),
+    path.join(process.cwd(), "public", "media", "audio", name),
+  ];
+  for (const file of candidates) {
+    try {
+      const bytes = await readFile(file);
+      return { bytes, type: name.endsWith(".mp3") ? "audio/mpeg" : "audio/wav" };
+    } catch {
+      // Try the next folder.
+    }
+  }
+  return null;
+}
+
 export async function saveAudio(name: string, data: string) {
   const lower = name.toLowerCase();
   const ext = lower.endsWith(".wav") ? "wav" : lower.endsWith(".mp3") ? "mp3" : "";
@@ -36,7 +80,7 @@ export async function saveAudio(name: string, data: string) {
   if (bytes.length < 1000) throw new Error("That file looks empty.");
   if (bytes.length > 12 * 1024 * 1024) throw new Error("Keep the song under 12 MB.");
   const filename = `${randomBytes(6).toString("hex")}.${ext}`;
-  const dir = path.join(process.cwd(), "public", "media", "audio");
+  const dir = path.join(process.cwd(), "data", "audio");
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, filename), bytes);
   return { audio: `/media/audio/${filename}` };

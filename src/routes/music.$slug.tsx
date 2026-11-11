@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Download, Pause, Play, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
-import { hashSeed, renderPreviewWav } from "@/lib/beat";
-import { clock, kes, PREVIEW_SECONDS } from "@/lib/format";
+import { clock, kes } from "@/lib/format";
+import { downloadIfPaid, playIfPaid } from "@/lib/listen";
 import { usePlayer } from "@/lib/player";
 import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
@@ -59,11 +59,7 @@ function ReleasePage() {
             {release.type === "album" ? "Buy album" : "Buy single"}
           </button>
         )}
-        <p className="mt-3 text-xs text-dim">
-          {release.tracks.some((track) => track.audio)
-            ? "Play uses the song file from Studio. Tracks without a file still play a short sketch."
-            : `No song file yet. Previews are ${PREVIEW_SECONDS}s sketches until you upload an MP3 or WAV in Studio.`}
-        </p>
+        <p className="mt-3 text-xs text-dim">Songs stay silent until you pay. After checkout, Play uses the file from Studio.</p>
       </div>
       <ol className="panel divide-y divide-border">
         {release.tracks.map((track, index) => {
@@ -75,17 +71,13 @@ function ReleasePage() {
               <button
                 type="button"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-fg"
-                aria-label={`Preview ${track.title}`}
+                aria-label={owned ? `Play ${track.title}` : `Pay to listen to ${track.title}`}
                 onClick={() => {
-                  if (active) player.toggle();
+                  if (active && owned) player.toggle();
                   else {
-                    player.play({
-                      id: track.id,
-                      title: track.title,
+                    void playIfPaid(player, track, owned, {
                       artist: `${site.artist} — ${release.title}`,
                       cover: release.cover,
-                      src: track.audio,
-                      duration: track.duration,
                     });
                   }
                 }}
@@ -124,18 +116,11 @@ function ReleasePage() {
                   type="button"
                   className="inline-flex h-10 items-center gap-1 rounded-full px-3 text-sm text-fg hover:text-primary"
                   onClick={() => {
-                    void renderPreviewWav(hashSeed(track.id), PREVIEW_SECONDS).then((blob) => {
-                      const url = URL.createObjectURL(blob);
-                      const link = document.createElement("a");
-                      link.href = url;
-                      link.download = `${site.brand}-${track.title}-preview.wav`;
-                      link.click();
-                      URL.revokeObjectURL(url);
-                    });
+                    void downloadIfPaid(track, owned);
                   }}
                 >
                   <Download className="h-4 w-4" />
-                  Preview
+                  Download
                 </button>
               ) : null}
             </li>

@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { adminLogin, adminLogout, adminSave, adminState, adminUploadAudio, getShopCatalog } from "@/lib/admin";
+import { adminCatalog, adminLogin, adminLogout, adminSave, adminState, adminUploadAudio } from "@/lib/admin";
 import type { Product, Release, Track } from "@/lib/catalog";
 import { kes } from "@/lib/format";
 
@@ -51,7 +51,7 @@ function AdminPage() {
       .then(async (state) => {
         setSignedIn(state.signedIn);
         if (state.signedIn) {
-          const catalog = await getShopCatalog();
+          const catalog = await adminCatalog();
           setReleases(catalog.releases);
           setProducts(catalog.products);
         }
@@ -65,7 +65,7 @@ function AdminPage() {
     setError("");
     try {
       await adminLogin({ data: { password } });
-      const catalog = await getShopCatalog();
+      const catalog = await adminCatalog();
       setReleases(catalog.releases);
       setProducts(catalog.products);
       setPassword("");

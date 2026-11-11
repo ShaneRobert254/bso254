@@ -4,8 +4,9 @@ export type Track = {
   /** Full song length, shown in the tracklist. Previews are shorter. */
   duration: number;
   price: number;
-  /** Public path to an uploaded MP3 or WAV, such as /media/audio/song.mp3 */
+  /** Public path kept for the studio. Shoppers only see hasAudio. */
   audio?: string;
+  hasAudio?: boolean;
 };
 
 export type Release = {

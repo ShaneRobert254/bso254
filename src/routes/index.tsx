@@ -5,28 +5,34 @@ import { Crown } from "@/components/logo";
 import { JoinForm } from "@/components/join-form";
 import { gallery, type Release } from "@/lib/catalog";
 import { kes } from "@/lib/format";
+import { playIfPaid } from "@/lib/listen";
 import { usePlayer } from "@/lib/player";
 import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
+import { ownsTrack, useOrders } from "@/lib/store";
+import { useHydrated } from "@/lib/use-hydrated";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   const player = usePlayer();
   const { releases, products } = useShop();
+  const orders = useOrders((state) => state.orders);
+  const ready = useHydrated();
   const [video, setVideo] = useState(false);
   const leadRelease = releases[0];
   const lead = leadRelease.tracks[0];
 
   function playRelease(release: Release) {
     const track = release.tracks[0];
-    player.play({
-      id: track.id,
-      title: track.title,
+    if (!track) return;
+    if (player.now?.id === track.id) {
+      player.toggle();
+      return;
+    }
+    void playIfPaid(player, track, ready && ownsTrack(orders, release.slug, track.id), {
       artist: site.artist,
       cover: release.cover,
-      src: track.audio,
-      duration: track.duration,
     });
   }
 
