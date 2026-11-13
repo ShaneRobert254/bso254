@@ -3,6 +3,7 @@ import { ArrowRight, Lock, Pause, Play } from "lucide-react";
 import { useState } from "react";
 import { Crown } from "@/components/logo";
 import { JoinForm } from "@/components/join-form";
+import { Platforms } from "@/components/platforms";
 import { gallery, type Release } from "@/lib/catalog";
 import { kes } from "@/lib/format";
 import { playIfPaid } from "@/lib/listen";
@@ -61,7 +62,7 @@ function Home() {
               FROM THE TRENCHES <span className="text-primary">TO THE THRONE</span>
             </p>
             <p className="mt-3 max-w-md text-sm text-muted sm:text-base">
-              Music, merch, and the movement. Latest chapter: {leadRelease.title}.
+              Unreleased and rare, only on this site. Pay once and the song stays open here for life. The everyday records are on the platforms.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <button type="button" className="btn-solid" onClick={playLead}>
@@ -71,6 +72,10 @@ function Home() {
               <Link to="/merch" className="btn-line">
                 Shop Now
               </Link>
+            </div>
+            <div className="mt-8 max-w-xl">
+              <p className="mb-2 text-xs tracking-[0.22em] text-primary">STREAM THE RECORDS FREE</p>
+              <Platforms compact />
             </div>
             <button
               type="button"
@@ -87,8 +92,8 @@ function Home() {
       <section className="mx-auto max-w-6xl px-4 py-14">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="font-display text-sm tracking-[0.28em] text-primary">MUSIC</p>
-            <h2 className="font-display text-5xl text-fg sm:text-6xl">The Sound</h2>
+            <p className="font-display text-sm tracking-[0.28em] text-primary">THE VAULT</p>
+            <h2 className="font-display text-5xl text-fg sm:text-6xl">Unreleased & rare</h2>
           </div>
           <Link to="/music" className="btn-line">
             All music

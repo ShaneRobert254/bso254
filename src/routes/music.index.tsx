@@ -21,9 +21,9 @@ function MusicPage() {
   return (
     <div>
       <PageHero
-        kicker="MUSIC"
-        title="Albums & singles"
-        text="Buy the records, preview every track, and keep what you own in your library on this device."
+        kicker="THE VAULT"
+        title="Unreleased & rare"
+        text="These do not live on Spotify. Pay once and the song stays open in this browser for life. It never downloads."
       />
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter music">

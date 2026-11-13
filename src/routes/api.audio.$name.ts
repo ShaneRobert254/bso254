@@ -14,6 +14,7 @@ export const Route = createFileRoute("/api/audio/$name")({
         return new Response(new Uint8Array(file.bytes), {
           headers: {
             "Content-Type": file.type,
+            "Content-Disposition": "inline",
             "Cache-Control": "private, no-store",
           },
         });

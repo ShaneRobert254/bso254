@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Download, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import { PageHero } from "@/components/cards";
 import { clock } from "@/lib/format";
-import { downloadIfPaid, playIfPaid } from "@/lib/listen";
+import { playIfPaid } from "@/lib/listen";
 import { usePlayer } from "@/lib/player";
 import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
@@ -29,7 +29,7 @@ function LibraryPage() {
       <PageHero
         kicker="LIBRARY"
         title="Your music"
-        text="Anything you buy on this device shows up here. Preview files download as WAV until the masters are added."
+        text="Pay once and the song stays in this browser for life. Play it here. It does not download, and it does not move to another device."
       />
       <div className="mx-auto max-w-6xl px-4 py-8">
         {owned.length === 0 ? (
@@ -55,16 +55,6 @@ function LibraryPage() {
                 >
                   <Play className="h-4 w-4" />
                   Play
-                </button>
-                <button
-                  type="button"
-                  className="btn-solid"
-                  onClick={() => {
-                    void downloadIfPaid(track, true);
-                  }}
-                >
-                  <Download className="h-4 w-4" />
-                  Download
                 </button>
               </li>
             ))}

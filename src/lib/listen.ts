@@ -31,23 +31,3 @@ export async function playIfPaid(
     toast.error(reason instanceof Error ? reason.message : "This song is not up yet.");
   }
 }
-
-export async function downloadIfPaid(track: Track, owned: boolean) {
-  if (!owned) {
-    toast.error("Pay to listen.");
-    return;
-  }
-  if (!track.hasAudio && !track.audio) {
-    toast.error("This song is not up yet.");
-    return;
-  }
-  try {
-    const opened = await openTrack({ data: { trackId: track.id } });
-    const link = document.createElement("a");
-    link.href = opened.src;
-    link.download = `${track.title}.mp3`;
-    link.click();
-  } catch (reason) {
-    toast.error(reason instanceof Error ? reason.message : "This song is not up yet.");
-  }
-}

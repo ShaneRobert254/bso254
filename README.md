@@ -25,9 +25,7 @@ The code can live in a public GitHub repo at no cost. GitHub Pages only serves p
 
 ## Studio
 
-`/admin` is the private page for changing music and merch. It is not linked in the main menu. Sign in, edit the music and merch, and upload an MP3 or WAV on each track. Then choose **Update the site**. Songs do not play until that browser has paid.
-
-On a host, set `ADMIN_PASSWORD` in the environment so the studio stays locked. Do not put that password in the repo.
+`/admin` is the private page for changing music and merch. The studio password is built into the app, so it works on GitHub and on a live host without an extra file. Sign in, upload an MP3 or WAV on each track, then choose **Update the site**. Songs do not play until that browser has paid, and they do not download.
 
 - `src/lib/site.ts` — email, YouTube video id, social links
 - `src/lib/catalog.ts` — releases, track prices, merch, gallery

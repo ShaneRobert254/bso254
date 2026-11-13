@@ -9,11 +9,12 @@ export const site = {
   youtubeId: "",
   /** Fans pay this Pochi / business line from the M-Pesa menu. */
   mpesaBusiness: "0111209244",
-  socials: {
-    youtube: "https://www.youtube.com/results?search_query=BSO254",
-    instagram: "https://www.instagram.com/explore/tags/bso254/",
-    tiktok: "https://www.tiktok.com/search?q=BSO254",
-    spotify: "https://open.spotify.com/search/BSO254",
-    x: "https://x.com/search?q=BSO254&src=typed_query",
-  },
+  /** Released music. The site itself only sells the unreleased and rare. */
+  platforms: [
+    { name: "YouTube", handle: "Bso254", href: "https://www.youtube.com/@bso254", color: "#ff0033" },
+    { name: "Spotify", handle: "Bso", href: "https://open.spotify.com/artist/0Hhlb0qyBGY1hK0WEWbiVt", color: "#1db954" },
+    { name: "Apple Music", handle: "Bso", href: "https://music.apple.com/ke/artist/bso/1675426096", color: "#fc3c44" },
+    { name: "Boomplay", handle: "Bso", href: "https://www.boomplay.com/search/Bso", color: "#ff7a00" },
+    { name: "SoundCloud", handle: "Bso", href: "https://soundcloud.com/bso", color: "#ff5500" },
+  ],
 } as const;

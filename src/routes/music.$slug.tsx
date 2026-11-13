@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Download, Pause, Play, ShoppingBag } from "lucide-react";
+import { Pause, Play, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { clock, kes } from "@/lib/format";
-import { downloadIfPaid, playIfPaid } from "@/lib/listen";
+import { playIfPaid } from "@/lib/listen";
 import { usePlayer } from "@/lib/player";
 import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
@@ -59,7 +59,7 @@ function ReleasePage() {
             {release.type === "album" ? "Buy album" : "Buy single"}
           </button>
         )}
-        <p className="mt-3 text-xs text-dim">Songs stay silent until you pay. After checkout, Play uses the file from Studio.</p>
+        <p className="mt-3 text-xs text-dim">Pay once. Listen on this site for life. No download, even after you own it.</p>
       </div>
       <ol className="panel divide-y divide-border">
         {release.tracks.map((track, index) => {
@@ -110,18 +110,6 @@ function ReleasePage() {
                     {kes(track.price)}
                   </button>
                 )
-              ) : null}
-              {owned ? (
-                <button
-                  type="button"
-                  className="inline-flex h-10 items-center gap-1 rounded-full px-3 text-sm text-fg hover:text-primary"
-                  onClick={() => {
-                    void downloadIfPaid(track, owned);
-                  }}
-                >
-                  <Download className="h-4 w-4" />
-                  Download
-                </button>
               ) : null}
             </li>
           );

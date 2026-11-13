@@ -8,7 +8,7 @@ export const Route = createFileRoute("/support")({ component: SupportPage });
 const faqs = [
   {
     q: "Where is my music after I buy it?",
-    a: "Open Library. Purchases stay on the browser you checked out with. Download the preview WAV from the track, or play it in the bar.",
+    a: "Open Library on the same phone or computer you paid with. Press Play. The song stays there for life and does not download.",
   },
   {
     q: "Do you ship merch?",
