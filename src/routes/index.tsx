@@ -12,6 +12,7 @@ import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
 import { ownsTrack, useOrders } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
+import { accountOwns, useAccountTracks } from "@/lib/use-owned";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -20,6 +21,7 @@ function Home() {
   const { releases, products } = useShop();
   const orders = useOrders((state) => state.orders);
   const ready = useHydrated();
+  const account = useAccountTracks();
   const [video, setVideo] = useState(false);
   const leadRelease = releases[0];
   const lead = leadRelease.tracks[0];
@@ -31,7 +33,7 @@ function Home() {
       player.toggle();
       return;
     }
-    void playIfPaid(player, track, ready && ownsTrack(orders, release.slug, track.id), {
+    void playIfPaid(player, track, ready && (ownsTrack(orders, release.slug, track.id) || accountOwns(account, release.slug, track.id)), {
       artist: site.artist,
       cover: release.cover,
     });

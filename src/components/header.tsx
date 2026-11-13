@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Logo } from "@/components/logo";
+import { SignedIn, SignedOut, UserButton } from "@/lib/auth/gates";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { cn } from "@/lib/cn";
 import { useShop } from "@/lib/shop";
 import { cartCount, useCart } from "@/lib/store";
@@ -35,6 +37,7 @@ export function Header() {
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const hydrated = useHydrated();
+  const { isPending } = useCurrentUserState();
   const count = useCart((state) => cartCount(state.lines));
   const { releases, products } = useShop();
   const shown = hydrated ? count : 0;
@@ -97,6 +100,17 @@ export function Header() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-1">
+          {isPending ? <span className="h-8 w-8 animate-pulse rounded-full bg-surface-2" /> : null}
+          <SignedOut>
+            <Link to="/login" className="hidden h-10 items-center px-2 text-sm text-muted hover:text-fg sm:inline-flex">
+              Sign in
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <span className="hidden max-w-40 truncate lg:inline">
+              <UserButton />
+            </span>
+          </SignedIn>
           <Link to="/merch" className="btn-solid mr-1 hidden h-10 px-4 sm:inline-flex">
             Shop Now
           </Link>
@@ -164,6 +178,9 @@ export function Header() {
               <Link to="/library" onClick={() => setOpen(false)} className="flex h-11 items-center gap-2 rounded-lg px-2 text-muted">
                 <Headphones className="h-4 w-4" />
                 Library
+              </Link>
+              <Link to="/login" onClick={() => setOpen(false)} className="flex h-11 items-center gap-2 rounded-lg px-2 text-muted">
+                Sign in
               </Link>
             </li>
           </ul>

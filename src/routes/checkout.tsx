@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { PageHero } from "@/components/cards";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { kes, spacedLine } from "@/lib/format";
+import { savePurchases } from "@/lib/purchases";
 import { site } from "@/lib/site";
 import { cartTotal, useCart, useOrders } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
@@ -15,6 +17,7 @@ function CheckoutPage() {
   const lines = useCart((state) => state.lines);
   const clear = useCart((state) => state.clear);
   const place = useOrders((state) => state.place);
+  const { user } = useCurrentUserState();
   const navigate = useNavigate();
   const shown = ready ? lines : [];
   const needsAddress = shown.some((line) => line.kind === "merch");
@@ -28,7 +31,7 @@ function CheckoutPage() {
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     if (shown.length === 0) {
       setError("Your bag is empty.");
@@ -62,6 +65,14 @@ function CheckoutPage() {
       note: note.trim(),
       receipt,
     });
+    if (user) {
+      const items = shown
+        .filter((line) => line.kind === "music")
+        .map((line) => ({ ref: line.ref, trackId: line.trackId, title: line.title }));
+      if (items.length > 0) {
+        await savePurchases({ data: { receipt, items } }).catch(() => undefined);
+      }
+    }
     clear();
     void navigate({ to: "/order/$id", params: { id } });
   }

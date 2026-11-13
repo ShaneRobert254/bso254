@@ -8,6 +8,7 @@ import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
 import { ownsTrack, useOrders } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
+import { accountOwns, useAccountTracks } from "@/lib/use-owned";
 
 export const Route = createFileRoute("/library")({ component: LibraryPage });
 
@@ -16,10 +17,11 @@ function LibraryPage() {
   const orders = useOrders((state) => state.orders);
   const player = usePlayer();
   const { releases } = useShop();
+  const account = useAccountTracks();
   const owned = ready
     ? releases.flatMap((release) =>
         release.tracks
-          .filter((track) => ownsTrack(orders, release.slug, track.id))
+          .filter((track) => ownsTrack(orders, release.slug, track.id) || accountOwns(account, release.slug, track.id))
           .map((track) => ({ release, track })),
       )
     : [];
@@ -29,7 +31,7 @@ function LibraryPage() {
       <PageHero
         kicker="LIBRARY"
         title="Your music"
-        text="Pay once and the song stays in this browser for life. Play it here. It does not download, and it does not move to another device."
+        text="Pay once and the song stays with your Google or X account, and on this browser. Play it here. It does not download."
       />
       <div className="mx-auto max-w-6xl px-4 py-8">
         {owned.length === 0 ? (

@@ -18,6 +18,7 @@ import { Route as CommunityRouteImport } from './routes/community'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as MerchRouteImport } from './routes/merch'
 import { Route as MusicRouteImport } from './routes/music'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -29,6 +30,7 @@ import { Route as MusicIndexRouteImport } from './routes/music.index'
 import { Route as MusicSlugRouteImport } from './routes/music.$slug'
 import { Route as OrderIdRouteImport } from './routes/order.$id'
 import { Route as ApiAudioNameRouteImport } from './routes/api.audio.$name'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiMpesaCallbackRouteImport } from './routes/api.mpesa.callback'
 
 const IndexRoute = IndexRouteImport.update({
@@ -74,6 +76,11 @@ const GalleryRoute = GalleryRouteImport.update({
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MerchRoute = MerchRouteImport.update({
@@ -131,6 +138,11 @@ const ApiAudioNameRoute = ApiAudioNameRouteImport.update({
   path: '/api/audio/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMpesaCallbackRoute = ApiMpesaCallbackRouteImport.update({
   id: '/api/mpesa/callback',
   path: '/api/mpesa/callback',
@@ -147,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/gallery': typeof GalleryRoute
   '/library': typeof LibraryRoute
+  '/login': typeof LoginRoute
   '/merch': typeof MerchRouteWithChildren
   '/music': typeof MusicRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -158,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/merch/': typeof MerchIndexRoute
   '/music/': typeof MusicIndexRoute
   '/api/audio/$name': typeof ApiAudioNameRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -170,6 +184,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/gallery': typeof GalleryRoute
   '/library': typeof LibraryRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -179,6 +194,7 @@ export interface FileRoutesByTo {
   '/merch': typeof MerchIndexRoute
   '/music': typeof MusicIndexRoute
   '/api/audio/$name': typeof ApiAudioNameRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
 }
 export interface FileRoutesById {
@@ -192,6 +208,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/gallery': typeof GalleryRoute
   '/library': typeof LibraryRoute
+  '/login': typeof LoginRoute
   '/merch': typeof MerchRouteWithChildren
   '/music': typeof MusicRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -203,6 +220,7 @@ export interface FileRoutesById {
   '/merch/': typeof MerchIndexRoute
   '/music/': typeof MusicIndexRoute
   '/api/audio/$name': typeof ApiAudioNameRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
 }
 export interface FileRouteTypes {
@@ -217,6 +235,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/gallery'
     | '/library'
+    | '/login'
     | '/merch'
     | '/music'
     | '/privacy'
@@ -228,6 +247,7 @@ export interface FileRouteTypes {
     | '/merch/'
     | '/music/'
     | '/api/audio/$name'
+    | '/api/auth/$'
     | '/api/mpesa/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -240,6 +260,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/gallery'
     | '/library'
+    | '/login'
     | '/privacy'
     | '/support'
     | '/terms'
@@ -249,6 +270,7 @@ export interface FileRouteTypes {
     | '/merch'
     | '/music'
     | '/api/audio/$name'
+    | '/api/auth/$'
     | '/api/mpesa/callback'
   id:
     | '__root__'
@@ -261,6 +283,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/gallery'
     | '/library'
+    | '/login'
     | '/merch'
     | '/music'
     | '/privacy'
@@ -272,6 +295,7 @@ export interface FileRouteTypes {
     | '/merch/'
     | '/music/'
     | '/api/audio/$name'
+    | '/api/auth/$'
     | '/api/mpesa/callback'
   fileRoutesById: FileRoutesById
 }
@@ -285,6 +309,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   GalleryRoute: typeof GalleryRoute
   LibraryRoute: typeof LibraryRoute
+  LoginRoute: typeof LoginRoute
   MerchRoute: typeof MerchRouteWithChildren
   MusicRoute: typeof MusicRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
@@ -292,6 +317,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   OrderIdRoute: typeof OrderIdRoute
   ApiAudioNameRoute: typeof ApiAudioNameRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiMpesaCallbackRoute: typeof ApiMpesaCallbackRoute
 }
 
@@ -358,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/merch': {
@@ -437,6 +470,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAudioNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/mpesa/callback': {
       id: '/api/mpesa/callback'
       path: '/api/mpesa/callback'
@@ -481,6 +521,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   GalleryRoute: GalleryRoute,
   LibraryRoute: LibraryRoute,
+  LoginRoute: LoginRoute,
   MerchRoute: MerchRouteWithChildren,
   MusicRoute: MusicRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
@@ -488,6 +529,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   OrderIdRoute: OrderIdRoute,
   ApiAudioNameRoute: ApiAudioNameRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiMpesaCallbackRoute: ApiMpesaCallbackRoute,
 }
 export const routeTree = rootRouteImport

@@ -8,6 +8,7 @@ import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
 import { ownsRelease, ownsTrack, useCart, useOrders } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
+import { accountOwns, useAccountTracks } from "@/lib/use-owned";
 
 export const Route = createFileRoute("/music/$slug")({ component: ReleasePage });
 
@@ -19,6 +20,7 @@ function ReleasePage() {
   const add = useCart((state) => state.add);
   const orders = useOrders((state) => state.orders);
   const ready = useHydrated();
+  const account = useAccountTracks();
   if (!release) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-20">
@@ -64,7 +66,7 @@ function ReleasePage() {
       <ol className="panel divide-y divide-border">
         {release.tracks.map((track, index) => {
           const active = player.now?.id === track.id;
-          const owned = ready && (ownedPack || ownsTrack(orders, release.slug, track.id));
+          const owned = ready && (ownedPack || ownsTrack(orders, release.slug, track.id) || accountOwns(account, release.slug, track.id));
           return (
             <li key={track.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
               <span className="w-6 text-sm text-dim tabular-nums">{index + 1}</span>
