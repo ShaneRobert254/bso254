@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Logo } from "@/components/logo";
-import { site } from "@/lib/site";
+import { Platforms } from "@/components/platforms";
 
 export function Footer() {
   return (
@@ -10,21 +10,7 @@ export function Footer() {
           <Logo compact />
           <p className="max-w-sm text-sm text-muted">Official site of Bso, the Kenyan rapper Bso254. Free streams live on the platforms. The vault here does not download.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {site.platforms.map((platform) => (
-            <a
-              key={platform.name}
-              href={platform.href}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-3 text-sm text-fg hover:border-primary hover:text-primary"
-            >
-              <span className="h-2 w-2 rounded-full" style={{ background: platform.color }} />
-              {platform.name}
-              <span className="text-dim">{platform.handle}</span>
-            </a>
-          ))}
-        </div>
+        <Platforms compact />
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted">
           <Link to="/community" className="hover:text-fg">Community</Link>
           <Link to="/privacy" className="hover:text-fg">Privacy Policy</Link>
