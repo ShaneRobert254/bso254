@@ -6,8 +6,19 @@ import { cn } from "@/lib/cn";
 import { kes } from "@/lib/format";
 import { useShop } from "@/lib/shop";
 import { useCart } from "@/lib/store";
+import { getProduct } from "@/lib/catalog";
+import { pageMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/merch/$slug")({ component: ProductPage });
+export const Route = createFileRoute("/merch/$slug")({
+  head: ({ params }) => {
+    const product = getProduct(params.slug);
+    return pageMeta(
+      `${product?.name ?? "Merch"} — Bso254`,
+      product?.blurb ?? "Official Bso254 merch from the Kenyan rapper Bso.",
+    );
+  },
+  component: ProductPage,
+});
 
 function ProductPage() {
   const { slug } = Route.useParams();

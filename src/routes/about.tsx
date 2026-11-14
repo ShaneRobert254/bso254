@@ -1,7 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { site } from "@/lib/site";
+import { pageMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/about")({ component: AboutPage });
+export const Route = createFileRoute("/about")({
+  head: () => pageMeta("About Bso (Bso254)", "Bso254 is the Kenyan rapper Bso. The story, the name, and the music."),
+  component: AboutPage,
+});
 
 function AboutPage() {
   return (
@@ -11,13 +15,13 @@ function AboutPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-bg via-bg/75 to-transparent" />
         <div className="relative mx-auto flex min-h-[420px] max-w-6xl flex-col justify-end px-4 py-12">
           <p className="font-display tracking-[0.28em] text-primary">ABOUT BSO</p>
-          <h1 className="font-display text-6xl md:text-7xl">The journey. The dream.</h1>
+          <h1 className="font-display text-6xl md:text-7xl">Bso. Bso254.</h1>
         </div>
       </section>
       <article className="mx-auto grid max-w-6xl gap-10 px-4 py-12 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="grid gap-4 text-muted">
           <p className="text-lg text-fg">
-            From the streets of Kenya to the global stage, Bso is more than music — it's a movement.
+            Bso254 is the Kenyan rapper who records as Bso. From the streets of Kenya to the booth, the name carries the country code.
           </p>
           <p>
             BSO254 carries the country code in the name. The work is the climb that tagline keeps repeating:

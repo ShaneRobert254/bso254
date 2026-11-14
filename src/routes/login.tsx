@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GROK_PROVIDERS, authEnabled, signIn } from "@/lib/auth/client";
+import { hiddenMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — BSO254" }] }),
+  head: () => hiddenMeta("Sign in — Bso254"),
   component: LoginPage,
 });
 

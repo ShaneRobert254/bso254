@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHero, ProductCard } from "@/components/cards";
 import { useShop } from "@/lib/shop";
+import { pageMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/merch/")({ component: MerchPage });
+export const Route = createFileRoute("/merch/")({
+  head: () => pageMeta("Bso254 merch", "Tees, hoodies, and caps from Bso, the Kenyan rapper Bso254."),
+  component: MerchPage,
+});
 
 function MerchPage() {
   const { products } = useShop();

@@ -2,8 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHero } from "@/components/cards";
 import { gallery } from "@/lib/catalog";
+import { pageMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/gallery")({ component: GalleryPage });
+export const Route = createFileRoute("/gallery")({
+  head: () => pageMeta("Bso254 gallery", "Photos of Bso, the Kenyan rapper Bso254."),
+  component: GalleryPage,
+});
 
 function GalleryPage() {
   const [active, setActive] = useState<number | null>(null);

@@ -4,8 +4,12 @@ import { PageHero } from "@/components/cards";
 import { kes } from "@/lib/format";
 import { cartTotal, useCart } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
+import { hiddenMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/cart")({ component: CartPage });
+export const Route = createFileRoute("/cart")({
+  head: () => hiddenMeta("Bag — Bso254"),
+  component: CartPage,
+});
 
 function CartPage() {
   const ready = useHydrated();

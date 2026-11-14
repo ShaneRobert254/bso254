@@ -7,8 +7,12 @@ import { savePurchases } from "@/lib/purchases";
 import { site } from "@/lib/site";
 import { cartTotal, useCart, useOrders } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
+import { hiddenMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/checkout")({ component: CheckoutPage });
+export const Route = createFileRoute("/checkout")({
+  head: () => hiddenMeta("Checkout — Bso254"),
+  component: CheckoutPage,
+});
 
 const payTo = spacedLine(site.mpesaBusiness);
 

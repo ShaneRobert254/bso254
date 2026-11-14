@@ -64,7 +64,7 @@ function Home() {
               FROM THE TRENCHES <span className="text-primary">TO THE THRONE</span>
             </p>
             <p className="mt-3 max-w-md text-sm text-muted sm:text-base">
-              Unreleased and rare, only on this site. Pay once and the song stays open here for life. The everyday records are on the platforms.
+              Bso, the Kenyan rapper also known as Bso254. Unreleased and rare songs stay on this site. The records already out are on YouTube, Spotify, Apple Music, Boomplay, and SoundCloud.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <button type="button" className="btn-solid" onClick={playLead}>

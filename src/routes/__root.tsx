@@ -4,6 +4,7 @@ import { getShopCatalog } from "@/lib/admin";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { Shell } from "@/components/shell";
 import { PlayerProvider } from "@/lib/player";
+import { artistJsonLd, searchDescription, searchTitle } from "@/lib/seo";
 import { ShopProvider } from "@/lib/shop";
 import appCss from "../styles.css?url";
 
@@ -13,13 +14,13 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "BSO254 — Music, Merch, Movement" },
-      {
-        name: "description",
-        content: "Official BSO254 store. Albums, singles, and merch. From the trenches to the throne.",
-      },
+      { title: searchTitle },
+      { name: "description", content: searchDescription },
+      { name: "robots", content: "index, follow" },
+      { name: "author", content: "Bso" },
       { name: "theme-color", content: "#070707" },
     ],
+    scripts: [{ type: "application/ld+json", children: JSON.stringify(artistJsonLd) }],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "stylesheet", href: appCss },

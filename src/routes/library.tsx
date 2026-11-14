@@ -9,8 +9,12 @@ import { site } from "@/lib/site";
 import { ownsTrack, useOrders } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
 import { accountOwns, useAccountTracks } from "@/lib/use-owned";
+import { hiddenMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/library")({ component: LibraryPage });
+export const Route = createFileRoute("/library")({
+  head: () => hiddenMeta("Library — Bso254"),
+  component: LibraryPage,
+});
 
 function LibraryPage() {
   const ready = useHydrated();

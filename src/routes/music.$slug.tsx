@@ -9,8 +9,19 @@ import { site } from "@/lib/site";
 import { ownsRelease, ownsTrack, useCart, useOrders } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
 import { accountOwns, useAccountTracks } from "@/lib/use-owned";
+import { getRelease } from "@/lib/catalog";
+import { pageMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/music/$slug")({ component: ReleasePage });
+export const Route = createFileRoute("/music/$slug")({
+  head: ({ params }) => {
+    const release = getRelease(params.slug);
+    return pageMeta(
+      `${release?.title ?? "Music"} — Bso254 (Bso)`,
+      release?.blurb ?? "A song by Bso, the Kenyan rapper Bso254.",
+    );
+  },
+  component: ReleasePage,
+});
 
 function ReleasePage() {
   const { slug } = Route.useParams();

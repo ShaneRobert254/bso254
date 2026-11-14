@@ -3,8 +3,12 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { PageHero } from "@/components/cards";
 import { site } from "@/lib/site";
+import { pageMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/contact")({ component: ContactPage });
+export const Route = createFileRoute("/contact")({
+  head: () => pageMeta("Contact Bso254", "Bookings and press for Bso, the Kenyan rapper Bso254."),
+  component: ContactPage,
+});
 
 function ContactPage() {
   const [name, setName] = useState("");

@@ -22,6 +22,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as MerchRouteImport } from './routes/merch'
 import { Route as MusicRouteImport } from './routes/music'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as MerchIndexRouteImport } from './routes/merch.index'
@@ -98,6 +100,16 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -163,6 +175,8 @@ export interface FileRoutesByFullPath {
   '/merch': typeof MerchRouteWithChildren
   '/music': typeof MusicRouteWithChildren
   '/privacy': typeof PrivacyRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/merch/$slug': typeof MerchSlugRoute
@@ -186,6 +200,8 @@ export interface FileRoutesByTo {
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/merch/$slug': typeof MerchSlugRoute
@@ -212,6 +228,8 @@ export interface FileRoutesById {
   '/merch': typeof MerchRouteWithChildren
   '/music': typeof MusicRouteWithChildren
   '/privacy': typeof PrivacyRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/merch/$slug': typeof MerchSlugRoute
@@ -239,6 +257,8 @@ export interface FileRouteTypes {
     | '/merch'
     | '/music'
     | '/privacy'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/support'
     | '/terms'
     | '/merch/$slug'
@@ -262,6 +282,8 @@ export interface FileRouteTypes {
     | '/library'
     | '/login'
     | '/privacy'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/support'
     | '/terms'
     | '/merch/$slug'
@@ -287,6 +309,8 @@ export interface FileRouteTypes {
     | '/merch'
     | '/music'
     | '/privacy'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/support'
     | '/terms'
     | '/merch/$slug'
@@ -313,6 +337,8 @@ export interface RootRouteChildren {
   MerchRoute: typeof MerchRouteWithChildren
   MusicRoute: typeof MusicRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   OrderIdRoute: typeof OrderIdRoute
@@ -412,6 +438,20 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/support': {
@@ -525,6 +565,8 @@ const rootRouteChildren: RootRouteChildren = {
   MerchRoute: MerchRouteWithChildren,
   MusicRoute: MusicRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   OrderIdRoute: OrderIdRoute,

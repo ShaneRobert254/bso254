@@ -3,8 +3,12 @@ import { useState } from "react";
 import { PageHero, ReleaseCard } from "@/components/cards";
 import { cn } from "@/lib/cn";
 import { useShop } from "@/lib/shop";
+import { pageMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/music/")({ component: MusicPage });
+export const Route = createFileRoute("/music/")({
+  head: () => pageMeta("Music by Bso254 (Bso)", "Unreleased and rare songs by the Kenyan rapper Bso, also known as Bso254."),
+  component: MusicPage,
+});
 
 const filters = ["All", "Albums", "Singles", "Unreleased"] as const;
 

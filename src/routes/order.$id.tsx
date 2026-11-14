@@ -3,8 +3,12 @@ import { kes, spacedLine } from "@/lib/format";
 import { site } from "@/lib/site";
 import { useOrders, type Order } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
+import { hiddenMeta } from "@/lib/seo";
 
-export const Route = createFileRoute("/order/$id")({ component: OrderPage });
+export const Route = createFileRoute("/order/$id")({
+  head: () => hiddenMeta("Order — Bso254"),
+  component: OrderPage,
+});
 
 function receiptText(order: Order) {
   const items = order.lines

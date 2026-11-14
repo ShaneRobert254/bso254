@@ -8,7 +8,7 @@ export function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <Logo compact />
-          <p className="max-w-sm text-sm text-muted">Free streams live on the platforms. The vault on this site does not download.</p>
+          <p className="max-w-sm text-sm text-muted">Official site of Bso, the Kenyan rapper Bso254. Free streams live on the platforms. The vault here does not download.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {site.platforms.map((platform) => (
