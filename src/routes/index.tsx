@@ -64,7 +64,7 @@ function Home() {
               FROM THE TRENCHES <span className="text-primary">TO THE THRONE</span>
             </p>
             <p className="mt-3 max-w-md text-sm text-muted sm:text-base">
-              Bso, the Kenyan rapper also known as Bso254. Unreleased and rare songs stay on this site. The records already out are on YouTube, Spotify, Apple Music, Boomplay, and SoundCloud.
+              Bso, the Kenyan rapper also known as Bso254. Unreleased and rare songs stay on this site. The records already out are on YouTube, Spotify, and Apple Music. Find him on Instagram and TikTok.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <button type="button" className="btn-solid" onClick={playLead}>
@@ -76,7 +76,7 @@ function Home() {
               </Link>
             </div>
             <div className="mt-8 max-w-xl">
-              <p className="mb-2 text-xs tracking-[0.22em] text-primary">STREAM THE RECORDS FREE</p>
+              <p className="mb-2 text-xs tracking-[0.22em] text-primary">FIND BSO</p>
               <Platforms compact />
             </div>
             <button

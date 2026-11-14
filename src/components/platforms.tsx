@@ -6,10 +6,10 @@ export function Platforms({ compact = false }: { compact?: boolean }) {
       <div className={`mx-auto max-w-6xl px-4 ${compact ? "" : "py-8"}`}>
         {compact ? null : (
           <div className="mb-4 max-w-xl">
-            <p className="font-display text-sm tracking-[0.28em] text-primary">STREAM FREE</p>
-            <h2 className="font-display text-4xl text-fg sm:text-5xl">The records are out there</h2>
+            <p className="font-display text-sm tracking-[0.28em] text-primary">FIND BSO</p>
+            <h2 className="font-display text-4xl text-fg sm:text-5xl">The records and the pages</h2>
             <p className="mt-2 text-sm text-muted">
-              Everyday songs live on the platforms. This site keeps the unreleased and the rare. Pay once, then listen here for life. Nothing downloads.
+              Everyday songs live on YouTube, Spotify, and Apple Music. Instagram and TikTok are the daily pages. This site keeps the unreleased and the rare.
             </p>
           </div>
         )}

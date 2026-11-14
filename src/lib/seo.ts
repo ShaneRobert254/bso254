@@ -3,7 +3,7 @@ import { site } from "@/lib/site";
 export const searchTitle = "Bso254 (Bso) — Official Site | Kenyan Rapper";
 
 export const searchDescription =
-  "Official site of Bso, the Kenyan rapper Bso254. Unreleased and rare songs, merch, and links to YouTube, Spotify, Apple Music, Boomplay, and SoundCloud.";
+  "Official site of Bso, the Kenyan rapper Bso254. Unreleased and rare songs, merch, and links to YouTube, Spotify, Apple Music, Instagram, and TikTok.";
 
 export const artistJsonLd = {
   "@context": "https://schema.org",
