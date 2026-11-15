@@ -24,8 +24,9 @@ function CheckoutPage() {
   const { user } = useCurrentUserState();
   const navigate = useNavigate();
   const shown = ready ? lines : [];
-  const needsAddress = shown.some((line) => line.kind === "merch");
-  const total = cartTotal(shown);
+  const musicLines = shown.filter((line) => line.kind === "music");
+  const needsAddress = false;
+  const total = cartTotal(musicLines);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -45,8 +46,13 @@ function CheckoutPage() {
       setError("Name, email, and the phone you paid from are required.");
       return;
     }
-    if (needsAddress && (!city.trim() || !address.trim())) {
-      setError("Merch needs a city and a delivery address.");
+    const music = shown.filter((line) => line.kind === "music");
+    if (music.length === 0) {
+      setError("Merchandise is not for sale yet. Add a song to pay.");
+      return;
+    }
+    if (!user) {
+      setError("Sign in first. The song stays locked until the receipt is confirmed, then it opens on that account.");
       return;
     }
     const receipt = code.trim().toUpperCase();
@@ -64,8 +70,8 @@ function CheckoutPage() {
       city: city.trim(),
       address: address.trim(),
       pay: "mpesa",
-      lines: shown,
-      total,
+      lines: music,
+      total: music.reduce((sum, line) => sum + line.price * line.qty, 0),
       note: note.trim(),
       receipt,
     });
@@ -99,7 +105,7 @@ function CheckoutPage() {
               <li>Choose Pochi la Biashara.</li>
               <li>Enter {site.mpesaBusiness}.</li>
               <li>Enter {kes(total)} and your PIN.</li>
-              <li>Paste the code from the confirmation text below.</li>
+              <li>Paste the code from the confirmation text below. The song stays locked until that receipt is confirmed in Studio.</li>
             </ol>
           </div>
           <label className="grid gap-1 text-sm text-muted">

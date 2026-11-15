@@ -15,7 +15,7 @@ function MerchPage() {
       <PageHero
         kicker="MERCH"
         title="Wear the movement"
-        text="Tees, hoodies, the throne cap, prints, and vinyl. Priced in Kenyan shillings."
+        text="Tees, hoodies, the throne cap, prints, and vinyl. Merchandise coming soon. Nothing ships yet."
       />
       <div className="mx-auto grid max-w-6xl gap-4 px-4 py-8 sm:grid-cols-2 lg:grid-cols-3">
         {products.map((product) => (

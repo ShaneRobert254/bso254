@@ -17,11 +17,10 @@ function CartPage() {
   const setQty = useCart((state) => state.setQty);
   const remove = useCart((state) => state.remove);
   const shown = ready ? lines : [];
-  const total = cartTotal(shown);
 
   return (
     <div>
-      <PageHero kicker="BAG" title="Your bag" text="Music unlocks in your library. Merch is reserved for delivery across Kenya." />
+      <PageHero kicker="BAG" title="Your bag" text="Music can be paid for here. Merchandise coming soon, so clothes stay out of checkout." />
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 lg:grid-cols-[1fr_280px]">
         {shown.length === 0 ? (
           <div className="panel p-8">
@@ -62,11 +61,12 @@ function CartPage() {
           </ul>
         )}
         <aside className="panel h-fit p-4">
-          <p className="text-sm text-muted">Total</p>
-          <p className="font-display text-4xl">{kes(total)}</p>
-          <Link to="/checkout" className={`btn-solid mt-4 w-full ${shown.length === 0 ? "pointer-events-none opacity-40" : ""}`} aria-disabled={shown.length === 0}>
-            Checkout
+          <p className="text-sm text-muted">Music total</p>
+          <p className="font-display text-4xl">{kes(cartTotal(shown.filter((line) => line.kind === "music")))}</p>
+          <Link to="/checkout" className={`btn-solid mt-4 w-full ${shown.some((line) => line.kind === "music") ? "" : "pointer-events-none opacity-40"}`}>
+            Checkout music
           </Link>
+          {shown.some((line) => line.kind === "merch") ? <p className="mt-3 text-xs text-dim">Merchandise coming soon. Those pieces are not in this payment.</p> : null}
         </aside>
       </div>
     </div>

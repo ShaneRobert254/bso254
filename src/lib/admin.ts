@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { ShopCatalog } from "@/lib/catalog.server";
+import { authMiddleware } from "@/lib/auth/middleware";
 
 export const getShopCatalog = createServerFn({ method: "GET" }).handler(async () => {
   const { publicCatalog, readLiveCatalog } = await import("./catalog.server");
@@ -13,9 +14,14 @@ export const adminCatalog = createServerFn({ method: "GET" }).handler(async () =
 });
 
 export const adminState = createServerFn({ method: "GET" }).handler(async () => {
-  const { signedIn, readLiveCatalog } = await import("./catalog.server");
+  const { needsSetup, signedIn, readLiveCatalog } = await import("./catalog.server");
   const catalog = await readLiveCatalog();
-  return { signedIn: await signedIn(), releases: catalog.releases.length, products: catalog.products.length };
+  return {
+    signedIn: await signedIn(),
+    needsSetup: await needsSetup(),
+    releases: catalog.releases.length,
+    products: catalog.products.length,
+  };
 });
 
 export const adminLogin = createServerFn({ method: "POST" })
@@ -28,6 +34,40 @@ export const adminLogin = createServerFn({ method: "POST" })
     const { login } = await import("./catalog.server");
     const ok = await login(data.password);
     if (!ok) throw new Error("Wrong password.");
+    return { ok: true as const };
+  });
+
+export const adminSetup = createServerFn({ method: "POST" })
+  .validator((input: { setupKey: string; password: string }) => {
+    const setupKey = String(input?.setupKey ?? "").trim();
+    const password = String(input?.password ?? "");
+    if (setupKey.length < 8 || password.length < 12 || password.length > 80) throw new Error("Check the setup key and use 12 or more characters.");
+    return { setupKey, password };
+  })
+  .handler(async ({ data }) => {
+    const { setupStudio, login } = await import("./catalog.server");
+    await setupStudio(data.setupKey, data.password);
+    const ok = await login(data.password);
+    if (!ok) throw new Error("The studio was created, but the sign-in did not stick. Try the password.");
+    return { ok: true as const };
+  });
+
+export const adminPayments = createServerFn({ method: "GET" }).handler(async () => {
+  const { signedIn, listPendingPurchases } = await import("./catalog.server");
+  if (!(await signedIn())) throw new Error("Sign in first.");
+  return listPendingPurchases();
+});
+
+export const adminConfirm = createServerFn({ method: "POST" })
+  .validator((input: { id: string }) => {
+    const id = String(input?.id ?? "");
+    if (id.length < 3 || id.length > 200) throw new Error("Unknown payment.");
+    return { id };
+  })
+  .handler(async ({ data }) => {
+    const { signedIn, confirmPurchase } = await import("./catalog.server");
+    if (!(await signedIn())) throw new Error("Sign in first.");
+    await confirmPurchase(data.id);
     return { ok: true as const };
   });
 
@@ -59,14 +99,16 @@ export const adminSave = createServerFn({ method: "POST" })
   });
 
 export const openTrack = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
   .validator((input: { trackId: string }) => {
     const trackId = String(input?.trackId ?? "");
     if (!/^[a-z0-9-]{1,60}$/.test(trackId)) throw new Error("Unknown track.");
     return { trackId };
   })
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { getCookie, setCookie } = await import("@tanstack/react-start/server");
-    const { grantFiles } = await import("./catalog.server");
+    const { grantFiles, userOwnsConfirmed } = await import("./catalog.server");
+    if (!(await userOwnsConfirmed(context.userId, data.trackId))) throw new Error("This song is still locked.");
     const files = await grantFiles([data.trackId]);
     if (files.length === 0) throw new Error("This song is not up yet.");
     const already = (getCookie("bso_paid") ?? "").split(",").filter(Boolean);

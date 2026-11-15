@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { adminCatalog, adminLogin, adminLogout, adminSave, adminState, adminUploadAudio } from "@/lib/admin";
+import { adminCatalog, adminConfirm, adminLogin, adminLogout, adminPayments, adminSave, adminSetup, adminState, adminUploadAudio } from "@/lib/admin";
 import type { Product, Release, Track } from "@/lib/catalog";
 import { kes } from "@/lib/format";
 
@@ -41,6 +41,9 @@ function AdminPage() {
   const [ready, setReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [password, setPassword] = useState("");
+  const [setupKey, setSetupKey] = useState("");
+  const [needsSetup, setNeedsSetup] = useState(false);
+  const [pending, setPending] = useState<{ id: string; receipt: string; title: string }[]>([]);
   const [error, setError] = useState("");
   const [releases, setReleases] = useState<Release[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -50,15 +53,35 @@ function AdminPage() {
     void adminState()
       .then(async (state) => {
         setSignedIn(state.signedIn);
+        setNeedsSetup(state.needsSetup);
         if (state.signedIn) {
           const catalog = await adminCatalog();
           setReleases(catalog.releases);
           setProducts(catalog.products);
+          setPending(await adminPayments());
         }
       })
       .catch(() => setError("The studio could not open."))
       .finally(() => setReady(true));
   }, []);
+
+  async function createStudio(event: FormEvent) {
+    event.preventDefault();
+    setError("");
+    try {
+      await adminSetup({ data: { setupKey, password } });
+      const catalog = await adminCatalog();
+      setReleases(catalog.releases);
+      setProducts(catalog.products);
+      setPending([]);
+      setPassword("");
+      setSetupKey("");
+      setNeedsSetup(false);
+      setSignedIn(true);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not set up the studio.");
+    }
+  }
 
   async function signIn(event: FormEvent) {
     event.preventDefault();
@@ -68,6 +91,7 @@ function AdminPage() {
       const catalog = await adminCatalog();
       setReleases(catalog.releases);
       setProducts(catalog.products);
+      setPending(await adminPayments().catch(() => []));
       setPassword("");
       setSignedIn(true);
     } catch (reason) {
@@ -92,6 +116,26 @@ function AdminPage() {
   }
 
   if (!ready) return <div className="mx-auto max-w-3xl px-4 py-16 text-muted">Opening the studio…</div>;
+
+  if (!signedIn && needsSetup) {
+    return (
+      <form onSubmit={createStudio} className="mx-auto grid max-w-md gap-3 px-4 py-16">
+        <p className="text-xs tracking-[0.2em] text-primary">STUDIO</p>
+        <h1 className="font-display text-5xl">Set the lock</h1>
+        <p className="text-sm text-muted">This runs once. Use the setup key you were given, then choose a password of at least 12 characters. It is not shown on the public site.</p>
+        <label className="grid gap-1 text-sm text-muted">
+          Setup key
+          <input className="field" value={setupKey} onChange={(event) => setSetupKey(event.target.value)} autoComplete="off" />
+        </label>
+        <label className="grid gap-1 text-sm text-muted">
+          New password
+          <input className="field" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" />
+        </label>
+        {error ? <p className="text-sm text-primary">{error}</p> : null}
+        <button type="submit" className="btn-solid">Create the studio lock</button>
+      </form>
+    );
+  }
 
   if (!signedIn) {
     return (
@@ -132,6 +176,28 @@ function AdminPage() {
         </div>
       </div>
       {error ? <p className="text-sm text-primary">{error}</p> : null}
+
+      <section className="panel grid gap-3 p-4">
+        <h2 className="font-display text-3xl">Payments waiting</h2>
+        <p className="text-sm text-muted">A song stays locked until you confirm the M-Pesa receipt. International cards are not switched on.</p>
+        {pending.length === 0 ? <p className="text-sm text-dim">No receipts waiting.</p> : null}
+        <ul className="grid gap-2">
+          {pending.map((item) => (
+            <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border py-2">
+              <span className="text-sm">{item.title} · {item.receipt}</span>
+              <button
+                type="button"
+                className="btn-line"
+                onClick={() => {
+                  void adminConfirm({ data: { id: item.id } }).then(() => setPending((list) => list.filter((row) => row.id !== item.id)));
+                }}
+              >
+                Confirm and unlock
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="grid gap-4">
         <div className="flex items-center justify-between gap-3">

@@ -1,11 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ShoppingBag } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { cn } from "@/lib/cn";
 import { kes } from "@/lib/format";
 import { useShop } from "@/lib/shop";
-import { useCart } from "@/lib/store";
 import { getProduct } from "@/lib/catalog";
 import { pageMeta } from "@/lib/seo";
 
@@ -24,7 +21,6 @@ function ProductPage() {
   const { slug } = Route.useParams();
   const { products } = useShop();
   const product = products.find((item) => item.slug === slug);
-  const add = useCart((state) => state.add);
   const [size, setSize] = useState(product?.sizes[0] ?? "");
   if (!product) {
     return (
@@ -59,24 +55,7 @@ function ProductPage() {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          className="btn-solid mt-6"
-          onClick={() => {
-            add({
-              kind: "merch",
-              ref: product.slug,
-              title: product.name,
-              price: product.price,
-              image: product.image,
-              size,
-            });
-            toast.success(`${product.name} · ${size} added`);
-          }}
-        >
-          <ShoppingBag className="h-4 w-4" />
-          Add to bag
-        </button>
+        <p className="mt-6 text-sm text-muted">Merchandise coming soon. This piece is on display only. It cannot be added to the bag or paid for yet.</p>
         <ul className="mt-6 grid gap-2 text-sm text-muted">
           {product.details.map((detail) => (
             <li key={detail}>{detail}</li>

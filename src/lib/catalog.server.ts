@@ -18,6 +18,19 @@ function fallback(): ShopCatalog {
 
 export async function readLiveCatalog(): Promise<ShopCatalog> {
   try {
+    const { getSql } = await import("./db");
+    const sql = await getSql();
+    const rows = await sql.query<{ body: ShopCatalog | string }>("select body from site_content where id = 'catalog'");
+    const body = rows[0]?.body;
+    if (body) {
+      const parsed = typeof body === "string" ? (JSON.parse(body) as ShopCatalog) : body;
+      const clean = sanitizeCatalog(parsed);
+      if (clean.releases.length > 0) return clean;
+    }
+  } catch {
+    // The database is not ready yet. Fall through to the file, then the built-in shop.
+  }
+  try {
     const raw = await readFile(catalogPath, "utf8");
     const parsed = JSON.parse(raw) as ShopCatalog;
     const clean = sanitizeCatalog(parsed);
@@ -57,6 +70,21 @@ export async function grantFiles(trackIds: string[]) {
 
 export async function readAudioFile(name: string) {
   if (!/^[a-f0-9]{12}\.(mp3|wav)$/.test(name)) return null;
+  try {
+    const { getSql } = await import("./db");
+    const sql = await getSql();
+    const rows = await sql.query<{ mime: string; bytes: Uint8Array | Buffer | string }>(
+      "select mime, bytes from audio_files where name = $1",
+      [name],
+    );
+    const row = rows[0];
+    if (row?.bytes) {
+      const bytes = typeof row.bytes === "string" ? Buffer.from(row.bytes, "base64") : Buffer.from(row.bytes);
+      return { bytes, type: row.mime || (name.endsWith(".mp3") ? "audio/mpeg" : "audio/wav") };
+    }
+  } catch {
+    // Fall through to a file saved before the database store existed.
+  }
   const candidates = [
     path.join(process.cwd(), "data", "audio", name),
     path.join(process.cwd(), "public", "media", "audio", name),
@@ -80,29 +108,58 @@ export async function saveAudio(name: string, data: string) {
   if (bytes.length < 1000) throw new Error("That file looks empty.");
   if (bytes.length > 12 * 1024 * 1024) throw new Error("Keep the song under 12 MB.");
   const filename = `${randomBytes(6).toString("hex")}.${ext}`;
-  const dir = path.join(process.cwd(), "data", "audio");
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, filename), bytes);
+  const mime = ext === "mp3" ? "audio/mpeg" : "audio/wav";
+  const { getSql } = await import("./db");
+  const sql = await getSql();
+  await sql.query("insert into audio_files (name, mime, bytes) values ($1, $2, $3)", [filename, mime, bytes]);
   return { audio: `/media/audio/${filename}` };
 }
 
 export async function writeLiveCatalog(input: ShopCatalog) {
   const clean = sanitizeCatalog(input);
   if (clean.releases.length === 0) throw new Error("Keep at least one release.");
-  await mkdir(dataDir, { recursive: true });
-  await writeFile(catalogPath, JSON.stringify(clean, null, 2), "utf8");
+  const { getSql } = await import("./db");
+  const sql = await getSql();
+  await sql.query(
+    "insert into site_content (id, body) values ('catalog', $1::jsonb) on conflict (id) do update set body = excluded.body",
+    [JSON.stringify(clean)],
+  );
+  try {
+    await mkdir(dataDir, { recursive: true });
+    await writeFile(catalogPath, JSON.stringify(clean, null, 2), "utf8");
+  } catch {
+    // A live host may not allow writing files. The database copy is the one that lasts.
+  }
   return clean;
 }
 
-const builtinAdmin: AdminFile = {
-  salt: "bso254-studio",
-  hash: "b87c7243e8784d55f9cefbd06583c5d15e1c39fd5c085c3454e7e6366a70dc56",
-  sessionKey: "17d3b5ee4e73f4097bbc7358b546f9e039b3a95a22c73dcc52290bf9aebfe5a9",
-};
+const setupSalt = "bso254-setup-v1";
+const setupHash = "9e3b80b508570a093df379d8aa48f86962ba950e442da767785d661e4ecd4466";
+
+async function db() {
+  const { getSql } = await import("./db");
+  return getSql();
+}
+
+async function readDbAdmin(): Promise<AdminFile | null> {
+  try {
+    const sql = await db();
+    const rows = await sql.query<{ salt: string; hash: string; session_key: string }>(
+      "select salt, hash, session_key from studio_admin where id = 'owner'",
+    );
+    const row = rows[0];
+    if (!row?.salt || !row.hash || !row.session_key) return null;
+    return { salt: row.salt, hash: row.hash, sessionKey: row.session_key };
+  } catch {
+    return null;
+  }
+}
 
 async function readAdmin(): Promise<AdminFile | null> {
+  const stored = await readDbAdmin();
+  if (stored) return stored;
   const fromEnv = process.env.ADMIN_PASSWORD?.trim();
-  if (fromEnv && fromEnv.length >= 8) {
+  if (fromEnv && fromEnv.length >= 12) {
     const salt = "bso254-studio";
     return { salt, hash: scryptSync(fromEnv, salt, 32).toString("hex"), sessionKey: scryptSync(`session:${fromEnv}`, salt, 32).toString("hex") };
   }
@@ -111,9 +168,28 @@ async function readAdmin(): Promise<AdminFile | null> {
     const parsed = JSON.parse(raw) as AdminFile;
     if (parsed.salt && parsed.hash && parsed.sessionKey.length >= 32) return parsed;
   } catch {
-    // Live hosts do not have data/admin.json. The built-in lock still opens the studio.
+    // No local lock file.
   }
-  return builtinAdmin;
+  return null;
+}
+
+export async function needsSetup() {
+  if (await readDbAdmin()) return false;
+  if ((process.env.ADMIN_PASSWORD?.trim().length ?? 0) >= 12) return false;
+  return true;
+}
+
+async function tooManyAttempts() {
+  const sql = await db();
+  const rows = await sql.query<{ n: number }>(
+    "select count(*)::int as n from studio_attempts where at > now() - interval '15 minutes'",
+  );
+  return Number(rows[0]?.n ?? 0) >= 8;
+}
+
+async function noteAttempt() {
+  const sql = await db();
+  await sql.query("insert into studio_attempts (at) values (now())");
 }
 
 function matches(password: string, file: AdminFile) {
@@ -140,12 +216,58 @@ export async function signedIn() {
 }
 
 export async function login(password: string) {
+  if (await tooManyAttempts()) throw new Error("Too many tries. Wait 15 minutes.");
   const file = await readAdmin();
-  if (!file || !matches(password, file)) return false;
+  if (!file || !matches(password, file)) {
+    await noteAttempt();
+    return false;
+  }
   const active = await session();
   if (!active) return false;
   await active.update({ ok: true });
   return true;
+}
+
+export async function setupStudio(setupKey: string, password: string) {
+  if (!(await needsSetup())) throw new Error("Studio is already set up.");
+  if (await tooManyAttempts()) throw new Error("Too many tries. Wait 15 minutes.");
+  const got = scryptSync(setupKey, setupSalt, 32);
+  const expected = Buffer.from(setupHash, "hex");
+  if (expected.length !== got.length || !timingSafeEqual(expected, got)) {
+    await noteAttempt();
+    throw new Error("That setup key is wrong.");
+  }
+  if (password.length < 12 || password.length > 80) throw new Error("Use 12 to 80 characters.");
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 32).toString("hex");
+  const sessionKey = scryptSync(`session:${password}:${salt}`, salt, 32).toString("hex");
+  const sql = await db();
+  await sql.query(
+    "insert into studio_admin (id, salt, hash, session_key) values ('owner', $1, $2, $3)",
+    [salt, hash, sessionKey],
+  );
+  return true;
+}
+
+export async function listPendingPurchases() {
+  const sql = await db();
+  return sql.query<{ id: string; receipt: string; title: string; user_id: string }>(
+    "select id, receipt, title, user_id from purchases where status = 'pending' order by created_at desc limit 40",
+  );
+}
+
+export async function confirmPurchase(id: string) {
+  const sql = await db();
+  await sql.query("update purchases set status = 'confirmed' where id = $1 and status = 'pending'", [id]);
+}
+
+export async function userOwnsConfirmed(userId: string, trackId: string) {
+  const sql = await db();
+  const rows = await sql.query<{ id: string }>(
+    "select id from purchases where user_id = $1 and track_id = $2 and status = 'confirmed' limit 1",
+    [userId, trackId],
+  );
+  return Boolean(rows[0]);
 }
 
 export async function logout() {

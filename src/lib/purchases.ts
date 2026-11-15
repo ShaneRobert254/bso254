@@ -16,7 +16,7 @@ export const listPurchases = createServerFn({ method: "GET" })
     return sql<SavedPurchase>`
       select id, title, ref, track_id
       from purchases
-      where user_id = ${context.userId}
+      where user_id = ${context.userId} and status = 'confirmed'
       order by created_at desc
     `;
   });
@@ -46,8 +46,8 @@ export const savePurchases = createServerFn({ method: "POST" })
       for (const track of tracks) {
         const id = `${context.userId}:${release.slug}:${track.id}`;
         await sql`
-          insert into purchases (id, user_id, receipt, title, ref, track_id)
-          values (${id}, ${context.userId}, ${data.receipt}, ${track.title}, ${release.slug}, ${track.id})
+          insert into purchases (id, user_id, receipt, title, ref, track_id, status)
+          values (${id}, ${context.userId}, ${data.receipt}, ${track.title}, ${release.slug}, ${track.id}, 'pending')
           on conflict (id) do nothing
         `;
         saved += 1;
