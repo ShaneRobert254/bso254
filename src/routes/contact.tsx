@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { PageHero } from "@/components/cards";
+import { sendMessage } from "@/lib/inbox";
 import { site } from "@/lib/site";
 import { pageMeta } from "@/lib/seo";
 
@@ -16,19 +17,21 @@ function ContactPage() {
   const [topic, setTopic] = useState("Booking");
   const [message, setMessage] = useState("");
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     if (!name.trim() || !email.includes("@") || message.trim().length < 8) {
       toast.error("Name, email, and a real message.");
       return;
     }
-    const notes = JSON.parse(localStorage.getItem("bso254-notes") ?? "[]") as unknown[];
-    notes.unshift({ name, email, topic, message, at: new Date().toISOString() });
-    localStorage.setItem("bso254-notes", JSON.stringify(notes.slice(0, 40)));
-    setName("");
-    setEmail("");
-    setMessage("");
-    toast.success("Message saved. We'll read it from this device's inbox until mail is connected.");
+    try {
+      await sendMessage({ data: { name: name.trim(), email: email.trim(), topic, message: message.trim() } });
+      setName("");
+      setEmail("");
+      setMessage("");
+      toast.success("Message received.");
+    } catch (reason) {
+      toast.error(reason instanceof Error ? reason.message : "Could not send that.");
+    }
   }
 
   return (
@@ -64,7 +67,7 @@ function ContactPage() {
           <p className="mt-2">{site.city}</p>
           <a className="mt-3 block text-fg hover:text-primary" href={`mailto:${site.email}`}>{site.email}</a>
           <p className="mt-4 text-xs text-dim">
-            Swap this address in the site settings when your real inbox is ready. Messages typed here stay in this browser for now.
+            Messages land in Studio. This address is the public one.
           </p>
         </aside>
       </div>

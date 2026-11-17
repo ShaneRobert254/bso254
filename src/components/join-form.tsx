@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
+import { joinFan } from "@/lib/inbox";
 import { useFans } from "@/lib/store";
 
 export function JoinForm({ compact = false }: { compact?: boolean }) {
@@ -9,17 +10,22 @@ export function JoinForm({ compact = false }: { compact?: boolean }) {
   const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     if (!name.trim() || !email.includes("@") || !city.trim()) {
       toast.error("Add your name, a real email, and your city.");
       return;
     }
-    join({ name: name.trim(), email: email.trim(), city: city.trim(), at: new Date().toISOString() });
-    setName("");
-    setEmail("");
-    setCity("");
-    toast.success("You're in. Watch your inbox for drops.");
+    try {
+      await joinFan({ data: { name: name.trim(), email: email.trim(), city: city.trim() } });
+      join({ name: name.trim(), email: email.trim(), city: city.trim(), at: new Date().toISOString() });
+      setName("");
+      setEmail("");
+      setCity("");
+      toast.success("You're on the list.");
+    } catch (reason) {
+      toast.error(reason instanceof Error ? reason.message : "Could not save that.");
+    }
   }
 
   return (

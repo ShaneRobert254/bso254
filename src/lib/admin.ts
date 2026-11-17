@@ -77,6 +77,20 @@ export const adminLogout = createServerFn({ method: "POST" }).handler(async () =
   return { ok: true as const };
 });
 
+export const adminUploadImage = createServerFn({ method: "POST" })
+  .validator((input: { name: string; data: string }) => {
+    const name = String(input?.name ?? "");
+    const data = String(input?.data ?? "").replace(/\s/g, "");
+    if (data.length < 100 || data.length > 6_000_000) throw new Error("Use a photo under 4 MB.");
+    return { name, data };
+  })
+  .handler(async ({ data }) => {
+    const { signedIn } = await import("./catalog.server");
+    const { saveImage } = await import("./inbox.server");
+    if (!(await signedIn())) throw new Error("Sign in first.");
+    return saveImage(data.name, data.data);
+  });
+
 export const adminUploadAudio = createServerFn({ method: "POST" })
   .validator((input: { name: string; data: string }) => {
     const name = String(input?.name ?? "");

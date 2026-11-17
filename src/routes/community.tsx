@@ -16,7 +16,7 @@ function CommunityPage() {
       <PageHero
         kicker="COMMUNITY"
         title="Be part of the squad"
-        text="Exclusive updates, fan features, and first listen on unreleased drops. Your name stays on this device until the list is connected to email."
+        text="Exclusive updates, fan features, and first listen on unreleased drops. The list is private. Only your name and city show on this device."
       />
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 lg:grid-cols-[1fr_1fr]">
         <section className="relative overflow-hidden panel min-h-80">

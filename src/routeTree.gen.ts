@@ -33,6 +33,7 @@ import { Route as MusicSlugRouteImport } from './routes/music.$slug'
 import { Route as OrderIdRouteImport } from './routes/order.$id'
 import { Route as ApiAudioNameRouteImport } from './routes/api.audio.$name'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiMediaNameRouteImport } from './routes/api.media.$name'
 import { Route as ApiMpesaCallbackRouteImport } from './routes/api.mpesa.callback'
 
 const IndexRoute = IndexRouteImport.update({
@@ -155,6 +156,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMediaNameRoute = ApiMediaNameRouteImport.update({
+  id: '/api/media/$name',
+  path: '/api/media/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMpesaCallbackRoute = ApiMpesaCallbackRouteImport.update({
   id: '/api/mpesa/callback',
   path: '/api/mpesa/callback',
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/music/': typeof MusicIndexRoute
   '/api/audio/$name': typeof ApiAudioNameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/media/$name': typeof ApiMediaNameRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/music': typeof MusicIndexRoute
   '/api/audio/$name': typeof ApiAudioNameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/media/$name': typeof ApiMediaNameRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
 }
 export interface FileRoutesById {
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/music/': typeof MusicIndexRoute
   '/api/audio/$name': typeof ApiAudioNameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/media/$name': typeof ApiMediaNameRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
 }
 export interface FileRouteTypes {
@@ -268,6 +277,7 @@ export interface FileRouteTypes {
     | '/music/'
     | '/api/audio/$name'
     | '/api/auth/$'
+    | '/api/media/$name'
     | '/api/mpesa/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -293,6 +303,7 @@ export interface FileRouteTypes {
     | '/music'
     | '/api/audio/$name'
     | '/api/auth/$'
+    | '/api/media/$name'
     | '/api/mpesa/callback'
   id:
     | '__root__'
@@ -320,6 +331,7 @@ export interface FileRouteTypes {
     | '/music/'
     | '/api/audio/$name'
     | '/api/auth/$'
+    | '/api/media/$name'
     | '/api/mpesa/callback'
   fileRoutesById: FileRoutesById
 }
@@ -344,6 +356,7 @@ export interface RootRouteChildren {
   OrderIdRoute: typeof OrderIdRoute
   ApiAudioNameRoute: typeof ApiAudioNameRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiMediaNameRoute: typeof ApiMediaNameRoute
   ApiMpesaCallbackRoute: typeof ApiMpesaCallbackRoute
 }
 
@@ -517,6 +530,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/media/$name': {
+      id: '/api/media/$name'
+      path: '/api/media/$name'
+      fullPath: '/api/media/$name'
+      preLoaderRoute: typeof ApiMediaNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/mpesa/callback': {
       id: '/api/mpesa/callback'
       path: '/api/mpesa/callback'
@@ -572,6 +592,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderIdRoute: OrderIdRoute,
   ApiAudioNameRoute: ApiAudioNameRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiMediaNameRoute: ApiMediaNameRoute,
   ApiMpesaCallbackRoute: ApiMpesaCallbackRoute,
 }
 export const routeTree = rootRouteImport

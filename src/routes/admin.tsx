@@ -1,8 +1,9 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { adminCatalog, adminConfirm, adminLogin, adminLogout, adminPayments, adminSave, adminSetup, adminState, adminUploadAudio } from "@/lib/admin";
-import type { Product, Release, Track } from "@/lib/catalog";
+import { adminCatalog, adminConfirm, adminLogin, adminLogout, adminPayments, adminSave, adminSetup, adminState, adminUploadAudio, adminUploadImage } from "@/lib/admin";
+import type { Product, Release, Shot, Track } from "@/lib/catalog";
+import { adminGallery, adminInbox, adminReadMessage, adminSaveGallery } from "@/lib/inbox";
 import { kes } from "@/lib/format";
 
 export const Route = createFileRoute("/admin")({
@@ -44,6 +45,9 @@ function AdminPage() {
   const [setupKey, setSetupKey] = useState("");
   const [needsSetup, setNeedsSetup] = useState(false);
   const [pending, setPending] = useState<{ id: string; receipt: string; title: string }[]>([]);
+  const [shots, setShots] = useState<Shot[]>([]);
+  const [notes, setNotes] = useState<{ id: string; name: string; email: string; topic: string; body: string; status: string }[]>([]);
+  const [fans, setFans] = useState<{ email: string; name: string; city: string }[]>([]);
   const [error, setError] = useState("");
   const [releases, setReleases] = useState<Release[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -59,6 +63,10 @@ function AdminPage() {
           setReleases(catalog.releases);
           setProducts(catalog.products);
           setPending(await adminPayments());
+          setShots(await adminGallery());
+          const inbox = await adminInbox();
+          setNotes(inbox.messages);
+          setFans(inbox.fans);
         }
       })
       .catch(() => setError("The studio could not open."))
@@ -92,6 +100,10 @@ function AdminPage() {
       setReleases(catalog.releases);
       setProducts(catalog.products);
       setPending(await adminPayments().catch(() => []));
+      setShots(await adminGallery().catch(() => []));
+      const inbox = await adminInbox().catch(() => ({ messages: [], fans: [] }));
+      setNotes(inbox.messages);
+      setFans(inbox.fans);
       setPassword("");
       setSignedIn(true);
     } catch (reason) {
@@ -211,6 +223,19 @@ function AdminPage() {
               <Field label="Price (KSh)" value={String(release.price)} onChange={(value) => editRelease(index, { price: Number(value) })} />
               <Field label="Cover image" value={release.cover} onChange={(cover) => editRelease(index, { cover })} />
               <label className="grid gap-1 text-sm text-muted">
+                Replace cover from this device
+                <input
+                  className="field"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (file) void uploadPhoto(file, (image) => editRelease(index, { cover: image }));
+                  }}
+                />
+              </label>
+              <label className="grid gap-1 text-sm text-muted">
                 Type
                 <select className="field" value={release.type} onChange={(event) => editRelease(index, { type: event.target.value === "single" ? "single" : "album" })}>
                   <option value="album">Album</option>
@@ -278,6 +303,19 @@ function AdminPage() {
             <Field label="Category" value={product.category} onChange={(category) => editProduct(index, { category })} />
             <Field label="Sizes, separated by commas" value={product.sizes.join(", ")} onChange={(value) => editProduct(index, { sizes: value.split(",").map((size) => size.trim()).filter(Boolean) })} />
             <Field label="Image" value={product.image} onChange={(image) => editProduct(index, { image })} />
+            <label className="grid gap-1 text-sm text-muted">
+              Replace photo from this device
+              <input
+                className="field"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  if (file) void uploadPhoto(file, (image) => editProduct(index, { image }));
+                }}
+              />
+            </label>
             <Field label="Description" value={product.blurb} onChange={(blurb) => editProduct(index, { blurb })} />
             <button type="button" className="justify-self-start text-sm text-primary" onClick={() => setProducts(products.filter((_, item) => item !== index))}>
               Remove piece
@@ -285,8 +323,78 @@ function AdminPage() {
           </article>
         ))}
       </section>
+
+      <section className="grid gap-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-display text-3xl">Gallery</h2>
+          <button type="button" className="btn-line" onClick={() => setShots([{ src: "/media/street.jpg", alt: "Bso", caption: "New photo" }, ...shots])}>Add photo</button>
+        </div>
+        {shots.map((shot, index) => (
+          <article key={`${shot.src}-${index}`} className="panel grid gap-3 p-4 sm:grid-cols-2">
+            <img src={shot.src} alt="" className="h-28 w-full rounded-md object-cover" />
+            <div className="grid gap-2">
+              <Field label="Caption" value={shot.caption} onChange={(caption) => setShots(shots.map((item, i) => (i === index ? { ...item, caption } : item)))} />
+              <Field label="Description" value={shot.alt} onChange={(alt) => setShots(shots.map((item, i) => (i === index ? { ...item, alt } : item)))} />
+              <label className="grid gap-1 text-sm text-muted">
+                Replace from this device
+                <input
+                  className="field"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (file) void uploadPhoto(file, (src) => setShots(shots.map((item, i) => (i === index ? { ...item, src } : item))));
+                  }}
+                />
+              </label>
+              <button type="button" className="justify-self-start text-sm text-primary" onClick={() => setShots(shots.filter((_, i) => i !== index))}>Remove photo</button>
+            </div>
+          </article>
+        ))}
+        <button type="button" className="btn-solid w-fit" disabled={saving} onClick={() => void publishGallery()}>Publish gallery</button>
+      </section>
+
+      <section className="panel grid gap-3 p-4">
+        <h2 className="font-display text-3xl">Messages</h2>
+        {notes.length === 0 ? <p className="text-sm text-dim">No messages yet.</p> : null}
+        <ul className="grid gap-3">
+          {notes.map((note) => (
+            <li key={note.id} className="border-b border-border pb-3">
+              <p className="text-sm text-fg">{note.name} · {note.topic} · {note.status}</p>
+              <p className="text-xs text-dim">{note.email}</p>
+              <p className="mt-1 text-sm text-muted">{note.body}</p>
+              {note.status !== "read" ? (
+                <button type="button" className="mt-2 text-sm text-primary" onClick={() => { void adminReadMessage({ data: { id: note.id } }).then(() => setNotes(notes.map((item) => item.id === note.id ? { ...item, status: "read" } : item))); }}>
+                  Mark read
+                </button>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+        <h2 className="font-display text-3xl">Fans</h2>
+        {fans.length === 0 ? <p className="text-sm text-dim">No fans yet.</p> : null}
+        <ul className="grid gap-1 text-sm text-muted">
+          {fans.map((fan) => (
+            <li key={fan.email}>{fan.name} · {fan.city} · {fan.email}</li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
+
+  async function publishGallery() {
+    setSaving(true);
+    setError("");
+    try {
+      setShots(await adminSaveGallery({ data: shots }));
+      toast.success("Gallery updated.");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not save the gallery.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   function editRelease(index: number, patch: Partial<Release>) {
     setReleases(releases.map((release, item) => (item === index ? { ...release, ...patch } : release)));
@@ -318,6 +426,29 @@ function AdminPage() {
       toast.success("Song file saved. Press Update the site.");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not upload the song.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function uploadPhoto(file: File, apply: (image: string) => void) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("Use a JPG, PNG, or WEBP photo.");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      setError("Use a photo under 4 MB.");
+      return;
+    }
+    setError("");
+    setSaving(true);
+    try {
+      const data = await fileToBase64(file);
+      const saved = await adminUploadImage({ data: { name: file.name, data } });
+      apply(saved.image);
+      toast.success("Photo saved. Press Update the site, or Publish gallery.");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not upload the photo.");
     } finally {
       setSaving(false);
     }

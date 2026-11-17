@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHero } from "@/components/cards";
-import { gallery } from "@/lib/catalog";
+import { getGallery } from "@/lib/inbox";
 import { pageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/gallery")({
   head: () => pageMeta("Bso254 gallery", "Photos of Bso, the Kenyan rapper Bso254."),
+  loader: () => getGallery(),
   component: GalleryPage,
 });
 
 function GalleryPage() {
+  const gallery = Route.useLoaderData();
   const [active, setActive] = useState<number | null>(null);
   const shot = active === null ? null : gallery[active];
 

@@ -347,7 +347,7 @@ function clamp(value: unknown, min: number, max: number, fallback: number) {
 
 function asset(value: unknown, fallback: string) {
   const raw = text(value, 240);
-  if (raw.startsWith("/media/") || raw.startsWith("https://")) return raw;
+  if (raw.startsWith("/media/") || raw.startsWith("/api/media/") || raw.startsWith("https://")) return raw;
   return fallback;
 }
 
