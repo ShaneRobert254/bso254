@@ -47,11 +47,23 @@ export function publicCatalog(catalog: ShopCatalog): ShopCatalog {
     releases: catalog.releases.map((release) => ({
       ...release,
       tracks: release.tracks.map((track) => {
-        const { audio: _audio, ...rest } = track;
-        return { ...rest, hasAudio: Boolean(track.audio) };
+        const { audio: _audio, preview: _preview, ...rest } = track;
+        return { ...rest, hasAudio: Boolean(track.audio), hasPreview: Boolean(track.preview) };
       }),
     })),
   };
+}
+
+export async function grantPreview(trackId: string) {
+  const catalog = await readLiveCatalog();
+  for (const release of catalog.releases) {
+    for (const track of release.tracks) {
+      if (track.id !== trackId || !track.preview) continue;
+      const name = track.preview.split("/").pop() ?? "";
+      return /^[a-f0-9]{12}\.(mp3|wav)$/.test(name) ? name : "";
+    }
+  }
+  return "";
 }
 
 export async function grantFiles(trackIds: string[]) {
@@ -281,12 +293,16 @@ export function sanitizeCatalog(input: ShopCatalog): ShopCatalog {
     const slug = uniqueSlug(text(release?.slug, 60) || title, index);
     const tracks = (Array.isArray(release?.tracks) ? release.tracks : []).slice(0, 30).map((track, trackIndex) => {
       const audio = audioPath(track?.audio);
+      const preview = audioPath(track?.preview);
+      const feat = text(track?.feat, 80);
       return {
         id: uniqueSlug(text(track?.id, 60) || text(track?.title, 80) || `track-${trackIndex + 1}`, trackIndex),
         title: text(track?.title, 80) || `Track ${trackIndex + 1}`,
         duration: clamp(track?.duration, 30, 3600, 180),
         price: clamp(track?.price, 0, 100000, 150),
         ...(audio ? { audio } : {}),
+        ...(preview ? { preview } : {}),
+        ...(feat ? { feat } : {}),
       };
     });
     return {
@@ -294,6 +310,7 @@ export function sanitizeCatalog(input: ShopCatalog): ShopCatalog {
       title,
       type: release?.type === "single" ? "single" : "album",
       year: clamp(release?.year, 1990, 2100, new Date().getFullYear()),
+      ...(dateOnly(release?.released) ? { released: dateOnly(release?.released) } : {}),
       cover: asset(release?.cover, "/media/cover-flip.jpg"),
       price: clamp(release?.price, 0, 100000, 500),
       exclusive: Boolean(release?.exclusive),
@@ -333,6 +350,11 @@ function audioPath(value: unknown) {
   const raw = text(value, 180);
   if (raw.startsWith("/media/audio/") && (raw.endsWith(".mp3") || raw.endsWith(".wav"))) return raw;
   return "";
+}
+
+function dateOnly(value: unknown) {
+  const raw = text(value, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : "";
 }
 
 function text(value: unknown, max: number) {

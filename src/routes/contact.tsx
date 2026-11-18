@@ -4,14 +4,17 @@ import { toast } from "sonner";
 import { PageHero } from "@/components/cards";
 import { sendMessage } from "@/lib/inbox";
 import { site } from "@/lib/site";
+import { getCopy } from "@/lib/settings";
 import { pageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/contact")({
   head: () => pageMeta("Contact Bso254", "Bookings and press for Bso, the Kenyan rapper Bso254."),
+  loader: () => getCopy(),
   component: ContactPage,
 });
 
 function ContactPage() {
+  const copy = Route.useLoaderData();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [topic, setTopic] = useState("Booking");
@@ -65,7 +68,7 @@ function ContactPage() {
         <aside className="panel h-fit p-5 text-sm text-muted">
           <p className="font-semibold text-fg">{site.brand}</p>
           <p className="mt-2">{site.city}</p>
-          <a className="mt-3 block text-fg hover:text-primary" href={`mailto:${site.email}`}>{site.email}</a>
+          <a className="mt-3 block text-fg hover:text-primary" href={`mailto:${copy.email}`}>{copy.email}</a>
           <p className="mt-4 text-xs text-dim">
             Messages land in Studio. This address is the public one.
           </p>

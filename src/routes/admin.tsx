@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { adminCatalog, adminConfirm, adminLogin, adminLogout, adminPayments, adminSave, adminSetup, adminState, adminUploadAudio, adminUploadImage } from "@/lib/admin";
 import type { Product, Release, Shot, Track } from "@/lib/catalog";
 import { adminGallery, adminInbox, adminReadMessage, adminSaveGallery } from "@/lib/inbox";
+import { adminSaveCopy, defaultCopy, getCopy, type SiteCopy } from "@/lib/settings";
 import { kes } from "@/lib/format";
 
 export const Route = createFileRoute("/admin")({
@@ -48,6 +49,7 @@ function AdminPage() {
   const [shots, setShots] = useState<Shot[]>([]);
   const [notes, setNotes] = useState<{ id: string; name: string; email: string; topic: string; body: string; status: string }[]>([]);
   const [fans, setFans] = useState<{ email: string; name: string; city: string }[]>([]);
+  const [copy, setCopy] = useState<SiteCopy>(defaultCopy);
   const [error, setError] = useState("");
   const [releases, setReleases] = useState<Release[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -67,6 +69,7 @@ function AdminPage() {
           const inbox = await adminInbox();
           setNotes(inbox.messages);
           setFans(inbox.fans);
+          setCopy(await getCopy());
         }
       })
       .catch(() => setError("The studio could not open."))
@@ -104,6 +107,7 @@ function AdminPage() {
       const inbox = await adminInbox().catch(() => ({ messages: [], fans: [] }));
       setNotes(inbox.messages);
       setFans(inbox.fans);
+      setCopy(await getCopy());
       setPassword("");
       setSignedIn(true);
     } catch (reason) {
@@ -211,6 +215,44 @@ function AdminPage() {
         </ul>
       </section>
 
+      <section className="panel grid gap-3 p-4">
+        <h2 className="font-display text-3xl">Site text</h2>
+        <p className="text-sm text-muted">About page, contact address, and the social links. The layout stays the same.</p>
+        <label className="grid gap-1 text-sm text-muted">
+          Contact email
+          <input className="field" value={copy.email} onChange={(event) => setCopy({ ...copy, email: event.target.value })} />
+        </label>
+        {(Object.keys(copy.links) as (keyof SiteCopy["links"])[]).map((name) => (
+          <label key={name} className="grid gap-1 text-sm text-muted">
+            {name} link
+            <input className="field" value={copy.links[name]} onChange={(event) => setCopy({ ...copy, links: { ...copy.links, [name]: event.target.value } })} />
+          </label>
+        ))}
+        {copy.about.map((paragraph, index) => (
+          <label key={index} className="grid gap-1 text-sm text-muted">
+            About paragraph {index + 1}
+            <textarea className="field h-24 py-2" value={paragraph} onChange={(event) => setCopy({ ...copy, about: copy.about.map((line, item) => (item === index ? event.target.value : line)) as SiteCopy["about"] })} />
+          </label>
+        ))}
+        <button
+          type="button"
+          className="btn-solid w-fit"
+          disabled={saving}
+          onClick={() => {
+            setSaving(true);
+            void adminSaveCopy({ data: copy })
+              .then((saved) => {
+                setCopy(saved);
+                toast.success("Site text updated.");
+              })
+              .catch((reason) => setError(reason instanceof Error ? reason.message : "Could not save the text."))
+              .finally(() => setSaving(false));
+          }}
+        >
+          Publish site text
+        </button>
+      </section>
+
       <section className="grid gap-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-display text-3xl">Music</h2>
@@ -221,6 +263,7 @@ function AdminPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Title" value={release.title} onChange={(title) => editRelease(index, { title })} />
               <Field label="Price (KSh)" value={String(release.price)} onChange={(value) => editRelease(index, { price: Number(value) })} />
+              <Field label="Release date" value={release.released ?? ""} onChange={(released) => editRelease(index, { released })} />
               <Field label="Cover image" value={release.cover} onChange={(cover) => editRelease(index, { cover })} />
               <label className="grid gap-1 text-sm text-muted">
                 Replace cover from this device
@@ -279,7 +322,24 @@ function AdminPage() {
                         if (file) void uploadSong(index, trackIndex, file);
                       }}
                     />
-                    <span className="text-xs text-dim">{track.audio ? `Saved: ${track.audio}` : "No song file yet. The player uses a short sketch until you add one."}</span>
+                    <span className="text-xs text-dim">{track.audio ? "Full song saved." : "No full song yet."} {track.preview ? "Preview saved." : "No preview."}</span>
+                  </label>
+                  <label className="grid gap-1 text-sm text-muted sm:col-span-2">
+                    Featured artist
+                    <input className="field" value={track.feat ?? ""} onChange={(event) => editTrack(index, trackIndex, { feat: event.target.value })} />
+                  </label>
+                  <label className="grid gap-1 text-sm text-muted sm:col-span-2">
+                    Preview clip (optional, MP3 or WAV)
+                    <input
+                      className="field"
+                      type="file"
+                      accept=".mp3,.wav,audio/mpeg,audio/wav,audio/x-wav"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        event.target.value = "";
+                        if (file) void uploadSong(index, trackIndex, file, true);
+                      }}
+                    />
                   </label>
                 </div>
               ))}
@@ -373,6 +433,23 @@ function AdminPage() {
           ))}
         </ul>
         <h2 className="font-display text-3xl">Fans</h2>
+        <button
+          type="button"
+          className="btn-line w-fit"
+          onClick={() => {
+            const header = "name,city,email";
+            const rows = fans.map((fan) => [fan.name, fan.city, fan.email].map((value) => `"${value.replace(/"/g, '""')}"`).join(","));
+            const blob = new Blob([[header, ...rows].join("\n")], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "bso254-fans.csv";
+            link.click();
+            URL.revokeObjectURL(url);
+          }}
+        >
+          Download fan list
+        </button>
         {fans.length === 0 ? <p className="text-sm text-dim">No fans yet.</p> : null}
         <ul className="grid gap-1 text-sm text-muted">
           {fans.map((fan) => (
@@ -406,7 +483,7 @@ function AdminPage() {
     });
   }
 
-  async function uploadSong(index: number, trackIndex: number, file: File) {
+  async function uploadSong(index: number, trackIndex: number, file: File, preview = false) {
     const lower = file.name.toLowerCase();
     if (!lower.endsWith(".mp3") && !lower.endsWith(".wav")) {
       setError("Use an MP3 or WAV file.");
@@ -422,8 +499,8 @@ function AdminPage() {
       const data = await fileToBase64(file);
       const saved = await adminUploadAudio({ data: { name: file.name, data } });
       const seconds = await fileSeconds(file);
-      editTrack(index, trackIndex, { audio: saved.audio, ...(seconds ? { duration: seconds } : {}) });
-      toast.success("Song file saved. Press Update the site.");
+      editTrack(index, trackIndex, preview ? { preview: saved.audio } : { audio: saved.audio, ...(seconds ? { duration: seconds } : {}) });
+      toast.success(preview ? "Preview saved. Press Update the site." : "Song file saved. Press Update the site.");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not upload the song.");
     } finally {

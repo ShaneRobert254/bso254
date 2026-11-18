@@ -1,5 +1,6 @@
 import { AppleMusicIcon, InstagramIcon, SpotifyIcon, TikTokIcon, YoutubeIcon } from "@/components/brand-icons";
 import { site } from "@/lib/site";
+import { useCopy } from "@/lib/copy-context";
 
 const icons = {
   YouTube: YoutubeIcon,
@@ -10,6 +11,7 @@ const icons = {
 } as const;
 
 export function Platforms({ compact = false }: { compact?: boolean }) {
+  const links = useCopy().links;
   return (
     <section className={compact ? "" : "border-b border-border bg-surface"}>
       <div className={`mx-auto max-w-6xl px-4 ${compact ? "" : "py-8"}`}>
@@ -25,10 +27,11 @@ export function Platforms({ compact = false }: { compact?: boolean }) {
         <ul className="flex flex-wrap gap-x-4 gap-y-3">
           {site.platforms.map((platform) => {
             const Icon = icons[platform.name];
+            const href = links[platform.name] || platform.href;
             return (
               <li key={platform.name}>
                 <a
-                  href={platform.href}
+                  href={href}
                   target="_blank"
                   rel="me noreferrer"
                   aria-label={`${platform.name}, ${platform.handle}`}

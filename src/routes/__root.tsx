@@ -1,6 +1,8 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { getShopCatalog } from "@/lib/admin";
+import { CopyProvider } from "@/lib/copy-context";
+import { getCopy } from "@/lib/settings";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { Shell } from "@/components/shell";
 import { PlayerProvider } from "@/lib/player";
@@ -9,7 +11,10 @@ import { ShopProvider } from "@/lib/shop";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
-  loader: () => getShopCatalog(),
+  loader: async () => {
+    const [catalog, copy] = await Promise.all([getShopCatalog(), getCopy()]);
+    return { catalog, copy };
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -32,7 +37,7 @@ export const Route = createRootRoute({
 });
 
 function Root() {
-  const catalog = Route.useLoaderData();
+  const { catalog, copy } = Route.useLoaderData();
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -43,9 +48,11 @@ function Root() {
         <AuthProvider>
           <PlayerProvider>
             <ShopProvider value={catalog}>
-              <Shell>
-                <Outlet />
-              </Shell>
+              <CopyProvider value={copy}>
+                <Shell>
+                  <Outlet />
+                </Shell>
+              </CopyProvider>
             </ShopProvider>
           </PlayerProvider>
         </AuthProvider>

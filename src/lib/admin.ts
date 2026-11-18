@@ -112,6 +112,19 @@ export const adminSave = createServerFn({ method: "POST" })
     return writeLiveCatalog(data);
   });
 
+export const openPreview = createServerFn({ method: "POST" })
+  .validator((input: { trackId: string }) => {
+    const trackId = String(input?.trackId ?? "");
+    if (!/^[a-z0-9-]{1,60}$/.test(trackId)) throw new Error("Unknown track.");
+    return { trackId };
+  })
+  .handler(async ({ data }) => {
+    const { grantPreview } = await import("./catalog.server");
+    const name = await grantPreview(data.trackId);
+    if (!name) throw new Error("No preview on this song.");
+    return { src: `/api/preview/${name}` };
+  });
+
 export const openTrack = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input: { trackId: string }) => {

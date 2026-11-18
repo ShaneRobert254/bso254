@@ -7,6 +7,10 @@ export type Track = {
   /** Public path kept for the studio. Shoppers only see hasAudio. */
   audio?: string;
   hasAudio?: boolean;
+  /** Short clip. Shoppers only see hasPreview. The full file stays private. */
+  preview?: string;
+  hasPreview?: boolean;
+  feat?: string;
 };
 
 export type Release = {
@@ -14,6 +18,7 @@ export type Release = {
   title: string;
   type: "album" | "single";
   year: number;
+  released?: string;
   cover: string;
   price: number;
   exclusive?: boolean;

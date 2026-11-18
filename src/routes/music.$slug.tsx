@@ -59,6 +59,7 @@ function ReleasePage() {
         <img src={release.cover} alt={`${release.title} cover`} className="w-full rounded-xl border border-border" />
         <p className="mt-4 text-xs tracking-[0.2em] text-dim uppercase">
           {release.type} · {release.year}
+          {release.released ? ` · ${release.released}` : ""}
           {release.exclusive ? " · Exclusive" : ""}
         </p>
         <h1 className="font-display text-5xl text-fg">{release.title}</h1>
@@ -84,7 +85,7 @@ function ReleasePage() {
               <button
                 type="button"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-fg"
-                aria-label={owned ? `Play ${track.title}` : `Pay to listen to ${track.title}`}
+                aria-label={owned ? `Play ${track.title}` : track.hasPreview ? `Preview ${track.title}` : `Pay to listen to ${track.title}`}
                 onClick={() => {
                   if (active && owned) player.toggle();
                   else {
@@ -98,8 +99,8 @@ function ReleasePage() {
                 {active && player.playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               </button>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-fg">{track.title}</p>
-                <p className="text-xs text-dim tabular-nums">{clock(track.duration)}</p>
+                <p className="truncate font-medium text-fg">{track.title}{track.feat ? ` feat. ${track.feat}` : ""}</p>
+                <p className="text-xs text-dim tabular-nums">{clock(track.duration)}{!owned && track.hasPreview ? " · preview" : ""}</p>
               </div>
               {release.type === "album" ? (
                 owned ? (
