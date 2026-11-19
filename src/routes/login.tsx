@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { GROK_PROVIDERS, authEnabled, signIn } from "@/lib/auth/client";
 import { hiddenMeta } from "@/lib/seo";
 
@@ -8,6 +9,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
+  const [error, setError] = useState("");
   return (
     <div className="mx-auto grid min-h-[70vh] max-w-md place-items-center px-4 py-16">
       <div className="panel w-full space-y-4 p-6">
@@ -22,7 +24,12 @@ function LoginPage() {
               key={provider.providerId}
               type="button"
               className="btn-solid w-full"
-              onClick={() => signIn(provider.providerId, { callbackURL: "/library" })}
+              onClick={() => {
+                setError("");
+                void signIn(provider.providerId, { callbackURL: "/library" }).catch((reason) => {
+                  setError(reason instanceof Error ? reason.message : "Sign-in failed.");
+                });
+              }}
             >
               Continue with {provider.label}
             </button>
@@ -30,6 +37,7 @@ function LoginPage() {
         ) : (
           <p className="text-sm text-muted">Sign-in is off.</p>
         )}
+        {error ? <p className="text-sm text-primary">{error}</p> : null}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { useSession } from "@tanstack/react-start/server";
+import { getCookie, setCookie, useSession } from "@tanstack/react-start/server";
 import { products as seedProducts, releases as seedReleases, type Product, type Release } from "@/lib/catalog";
 
 export type ShopCatalog = { releases: Release[]; products: Product[] };
@@ -167,9 +167,42 @@ async function readDbAdmin(): Promise<AdminFile | null> {
   }
 }
 
+const lockCookie = "bso_studio_lock";
+let lockThisRequest: AdminFile | null = null;
+
+function onLiveHost() {
+  return process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+}
+
+function readLockCookie(): AdminFile | null {
+  try {
+    const raw = getCookie(lockCookie);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as AdminFile;
+    if (parsed.salt && parsed.hash && parsed.sessionKey.length >= 32) return parsed;
+  } catch {
+    // Ignore a broken cookie.
+  }
+  return null;
+}
+
+function writeLockCookie(file: AdminFile) {
+  lockThisRequest = file;
+  setCookie(lockCookie, JSON.stringify(file), {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    secure: onLiveHost(),
+    maxAge: 60 * 60 * 24 * 400,
+  });
+}
+
 async function readAdmin(): Promise<AdminFile | null> {
   const stored = await readDbAdmin();
   if (stored) return stored;
+  if (lockThisRequest) return lockThisRequest;
+  const fromCookie = readLockCookie();
+  if (fromCookie) return fromCookie;
   const fromEnv = process.env.ADMIN_PASSWORD?.trim();
   if (fromEnv && fromEnv.length >= 12) {
     const salt = "bso254-studio";
@@ -187,21 +220,30 @@ async function readAdmin(): Promise<AdminFile | null> {
 
 export async function needsSetup() {
   if (await readDbAdmin()) return false;
+  if (readLockCookie()) return false;
   if ((process.env.ADMIN_PASSWORD?.trim().length ?? 0) >= 12) return false;
   return true;
 }
 
 async function tooManyAttempts() {
-  const sql = await db();
-  const rows = await sql.query<{ n: number }>(
-    "select count(*)::int as n from studio_attempts where at > now() - interval '15 minutes'",
-  );
-  return Number(rows[0]?.n ?? 0) >= 8;
+  try {
+    const sql = await db();
+    const rows = await sql.query<{ n: number }>(
+      "select count(*)::int as n from studio_attempts where at > now() - interval '15 minutes'",
+    );
+    return Number(rows[0]?.n ?? 0) >= 8;
+  } catch {
+    return false;
+  }
 }
 
 async function noteAttempt() {
-  const sql = await db();
-  await sql.query("insert into studio_attempts (at) values (now())");
+  try {
+    const sql = await db();
+    await sql.query("insert into studio_attempts (at) values (now())");
+  } catch {
+    // A live host with no database still has to refuse a wrong password.
+  }
 }
 
 function matches(password: string, file: AdminFile) {
@@ -217,7 +259,7 @@ async function session() {
     password: file.sessionKey,
     name: "bso_admin",
     maxAge: 60 * 60 * 24 * 30,
-    cookie: { httpOnly: true, sameSite: "lax", path: "/", secure: false },
+    cookie: { httpOnly: true, sameSite: "lax", path: "/", secure: onLiveHost() },
   });
 }
 
@@ -253,11 +295,17 @@ export async function setupStudio(setupKey: string, password: string) {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(password, salt, 32).toString("hex");
   const sessionKey = scryptSync(`session:${password}:${salt}`, salt, 32).toString("hex");
-  const sql = await db();
-  await sql.query(
-    "insert into studio_admin (id, salt, hash, session_key) values ('owner', $1, $2, $3)",
-    [salt, hash, sessionKey],
-  );
+  const file = { salt, hash, sessionKey };
+  try {
+    const sql = await db();
+    await sql.query(
+      "insert into studio_admin (id, salt, hash, session_key) values ('owner', $1, $2, $3) on conflict (id) do update set salt = excluded.salt, hash = excluded.hash, session_key = excluded.session_key",
+      [salt, hash, sessionKey],
+    );
+  } catch {
+    // The live site often has no database file. The cookie lock below still holds the password.
+  }
+  writeLockCookie(file);
   return true;
 }
 
