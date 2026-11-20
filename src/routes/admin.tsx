@@ -2,7 +2,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { adminCatalog, adminConfirm, adminLogin, adminLogout, adminPayments, adminSave, adminSetup, adminState, adminUploadAudio, adminUploadImage } from "@/lib/admin";
-import type { Product, Release, Shot, Track } from "@/lib/catalog";
+import { gallery as builtInGallery, type Product, type Release, type Shot, type Track } from "@/lib/catalog";
 import { adminGallery, adminInbox, adminReadMessage, adminSaveGallery } from "@/lib/inbox";
 import { adminSaveCopy, defaultCopy, getCopy, type SiteCopy } from "@/lib/settings";
 import { kes } from "@/lib/format";
@@ -11,6 +11,12 @@ export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Studio — BSO254" }, { name: "robots", content: "noindex" }] }),
   component: AdminPage,
 });
+
+function loadGallery() {
+  return adminGallery()
+    .then((loaded) => (loaded.length > 0 ? loaded : builtInGallery))
+    .catch(() => builtInGallery);
+}
 
 function blankRelease(): Release {
   return {
@@ -46,7 +52,7 @@ function AdminPage() {
   const [setupKey, setSetupKey] = useState("");
   const [needsSetup, setNeedsSetup] = useState(false);
   const [pending, setPending] = useState<{ id: string; receipt: string; title: string }[]>([]);
-  const [shots, setShots] = useState<Shot[]>([]);
+  const [shots, setShots] = useState<Shot[]>(builtInGallery);
   const [notes, setNotes] = useState<{ id: string; name: string; email: string; topic: string; body: string; status: string }[]>([]);
   const [fans, setFans] = useState<{ email: string; name: string; city: string }[]>([]);
   const [copy, setCopy] = useState<SiteCopy>(defaultCopy);
@@ -65,7 +71,7 @@ function AdminPage() {
           setReleases(catalog.releases);
           setProducts(catalog.products);
           setPending(await adminPayments());
-          setShots(await adminGallery());
+          setShots(await loadGallery());
           const inbox = await adminInbox();
           setNotes(inbox.messages);
           setFans(inbox.fans);
@@ -85,6 +91,7 @@ function AdminPage() {
       setReleases(catalog.releases);
       setProducts(catalog.products);
       setPending([]);
+      setShots(await loadGallery());
       setPassword("");
       setSetupKey("");
       setNeedsSetup(false);
@@ -103,7 +110,7 @@ function AdminPage() {
       setReleases(catalog.releases);
       setProducts(catalog.products);
       setPending(await adminPayments().catch(() => []));
-      setShots(await adminGallery().catch(() => []));
+      setShots(await loadGallery());
       const inbox = await adminInbox().catch(() => ({ messages: [], fans: [] }));
       setNotes(inbox.messages);
       setFans(inbox.fans);
@@ -387,14 +394,21 @@ function AdminPage() {
       <section className="grid gap-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-display text-3xl">Gallery</h2>
-          <button type="button" className="btn-line" onClick={() => setShots([{ src: "/media/street.jpg", alt: "Bso", caption: "New photo" }, ...shots])}>Add photo</button>
+          <button
+            type="button"
+            className="btn-line"
+            onClick={() => setShots((current) => [{ src: "/media/street.jpg", alt: "Bso", caption: "New photo" }, ...current])}
+          >
+            Add photo
+          </button>
         </div>
+        <p className="text-sm text-muted">These are the photos on the site. Remove one, or add a photo from your phone, then press Publish gallery.</p>
         {shots.map((shot, index) => (
           <article key={`${shot.src}-${index}`} className="panel grid gap-3 p-4 sm:grid-cols-2">
             <img src={shot.src} alt="" className="h-28 w-full rounded-md object-cover" />
             <div className="grid gap-2">
-              <Field label="Caption" value={shot.caption} onChange={(caption) => setShots(shots.map((item, i) => (i === index ? { ...item, caption } : item)))} />
-              <Field label="Description" value={shot.alt} onChange={(alt) => setShots(shots.map((item, i) => (i === index ? { ...item, alt } : item)))} />
+              <Field label="Caption" value={shot.caption} onChange={(caption) => setShots((current) => current.map((item, i) => (i === index ? { ...item, caption } : item)))} />
+              <Field label="Description" value={shot.alt} onChange={(alt) => setShots((current) => current.map((item, i) => (i === index ? { ...item, alt } : item)))} />
               <label className="grid gap-1 text-sm text-muted">
                 Replace from this device
                 <input
@@ -404,11 +418,13 @@ function AdminPage() {
                   onChange={(event) => {
                     const file = event.target.files?.[0];
                     event.target.value = "";
-                    if (file) void uploadPhoto(file, (src) => setShots(shots.map((item, i) => (i === index ? { ...item, src } : item))));
+                    if (file) void uploadPhoto(file, (src) => setShots((current) => current.map((item, i) => (i === index ? { ...item, src } : item))));
                   }}
                 />
               </label>
-              <button type="button" className="justify-self-start text-sm text-primary" onClick={() => setShots(shots.filter((_, i) => i !== index))}>Remove photo</button>
+              <button type="button" className="btn-line justify-self-start" onClick={() => setShots((current) => current.filter((_, i) => i !== index))}>
+                Remove photo
+              </button>
             </div>
           </article>
         ))}
