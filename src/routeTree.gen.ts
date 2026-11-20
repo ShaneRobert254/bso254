@@ -26,7 +26,6 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as ApiLiveCheckRouteImport } from './routes/api.live-check'
 import { Route as MerchIndexRouteImport } from './routes/merch.index'
 import { Route as MerchSlugRouteImport } from './routes/merch.$slug'
 import { Route as MusicIndexRouteImport } from './routes/music.index'
@@ -123,11 +122,6 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiLiveCheckRoute = ApiLiveCheckRouteImport.update({
-  id: '/api/live-check',
-  path: '/api/live-check',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MerchIndexRoute = MerchIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -197,7 +191,6 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/api/live-check': typeof ApiLiveCheckRoute
   '/merch/$slug': typeof MerchSlugRoute
   '/music/$slug': typeof MusicSlugRoute
   '/order/$id': typeof OrderIdRoute
@@ -225,7 +218,6 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/api/live-check': typeof ApiLiveCheckRoute
   '/merch/$slug': typeof MerchSlugRoute
   '/music/$slug': typeof MusicSlugRoute
   '/order/$id': typeof OrderIdRoute
@@ -256,7 +248,6 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/api/live-check': typeof ApiLiveCheckRoute
   '/merch/$slug': typeof MerchSlugRoute
   '/music/$slug': typeof MusicSlugRoute
   '/order/$id': typeof OrderIdRoute
@@ -288,7 +279,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
-    | '/api/live-check'
     | '/merch/$slug'
     | '/music/$slug'
     | '/order/$id'
@@ -316,7 +306,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
-    | '/api/live-check'
     | '/merch/$slug'
     | '/music/$slug'
     | '/order/$id'
@@ -346,7 +335,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
-    | '/api/live-check'
     | '/merch/$slug'
     | '/music/$slug'
     | '/order/$id'
@@ -377,7 +365,6 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
-  ApiLiveCheckRoute: typeof ApiLiveCheckRoute
   OrderIdRoute: typeof OrderIdRoute
   ApiAudioNameRoute: typeof ApiAudioNameRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -507,13 +494,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/live-check': {
-      id: '/api/live-check'
-      path: '/api/live-check'
-      fullPath: '/api/live-check'
-      preLoaderRoute: typeof ApiLiveCheckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/merch/': {
       id: '/merch/'
       path: '/'
@@ -629,7 +609,6 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
-  ApiLiveCheckRoute: ApiLiveCheckRoute,
   OrderIdRoute: OrderIdRoute,
   ApiAudioNameRoute: ApiAudioNameRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
