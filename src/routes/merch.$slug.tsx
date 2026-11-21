@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { toast } from "sonner";
 import { cn } from "@/lib/cn";
 import { kes } from "@/lib/format";
 import { useShop } from "@/lib/shop";
+import { useCart } from "@/lib/store";
 import { getProduct } from "@/lib/catalog";
 import { pageMeta } from "@/lib/seo";
 
@@ -22,6 +24,7 @@ function ProductPage() {
   const { products } = useShop();
   const product = products.find((item) => item.slug === slug);
   const [size, setSize] = useState(product?.sizes[0] ?? "");
+  const add = useCart((state) => state.add);
   if (!product) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-20">
@@ -55,7 +58,24 @@ function ProductPage() {
             </button>
           ))}
         </div>
-        <p className="mt-6 text-sm text-muted">Merchandise coming soon. This piece is on display only. It cannot be added to the bag or paid for yet.</p>
+        <button
+          type="button"
+          className="btn-solid mt-6"
+          onClick={() => {
+            add({
+              kind: "merch",
+              ref: product.slug,
+              title: product.name,
+              price: product.price,
+              image: product.image,
+              size: size || product.sizes[0],
+            });
+            toast.success(`${product.name} added. Send the order on WhatsApp from your bag.`);
+          }}
+        >
+          Add to bag
+        </button>
+        <p className="mt-3 text-sm text-muted">You send the order on WhatsApp to 0111 209 244. Payment details come back in that chat. Nothing is charged on this page.</p>
         <ul className="mt-6 grid gap-2 text-sm text-muted">
           {product.details.map((detail) => (
             <li key={detail}>{detail}</li>

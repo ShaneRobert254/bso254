@@ -7,7 +7,7 @@ export const site = {
   city: "Kenya",
   /** Leave blank until your YouTube video id is ready. A visualizer plays instead. */
   youtubeId: "",
-  /** Fans pay this Pochi / business line from the M-Pesa menu. */
+  /** WhatsApp and M-Pesa business line. */
   mpesaBusiness: "0111209244",
   /** Released music. The site itself only sells the unreleased and rare. */
   platforms: [
@@ -18,3 +18,9 @@ export const site = {
     { name: "TikTok", handle: "bso_254", href: "https://www.tiktok.com/@bso_254", color: "#111111" },
   ],
 } as const;
+
+export function whatsappLink(text: string) {
+  const digits = site.mpesaBusiness.replace(/\D/g, "");
+  const intl = digits.startsWith("0") ? `254${digits.slice(1)}` : digits;
+  return `https://wa.me/${intl}?text=${encodeURIComponent(text)}`;
+}

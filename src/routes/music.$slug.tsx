@@ -1,14 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Pause, Play, ShoppingBag } from "lucide-react";
-import { toast } from "sonner";
-import { clock, kes } from "@/lib/format";
+import { Pause, Play } from "lucide-react";
+import { clock } from "@/lib/format";
 import { playIfPaid } from "@/lib/listen";
 import { usePlayer } from "@/lib/player";
 import { useShop } from "@/lib/shop";
 import { site } from "@/lib/site";
-import { ownsRelease, ownsTrack, useCart, useOrders } from "@/lib/store";
-import { useHydrated } from "@/lib/use-hydrated";
-import { accountOwns, useAccountTracks } from "@/lib/use-owned";
 import { getRelease } from "@/lib/catalog";
 import { pageMeta } from "@/lib/seo";
 
@@ -28,10 +24,6 @@ function ReleasePage() {
   const { releases } = useShop();
   const release = releases.find((item) => item.slug === slug);
   const player = usePlayer();
-  const add = useCart((state) => state.add);
-  const orders = useOrders((state) => state.orders);
-  const ready = useHydrated();
-  const account = useAccountTracks();
   if (!release) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-20">
@@ -40,19 +32,6 @@ function ReleasePage() {
       </div>
     );
   }
-  const ownedPack = ready && ownsRelease(orders, release.slug);
-
-  function buyPack() {
-    add({
-      kind: "music",
-      ref: release!.slug,
-      title: release!.title,
-      price: release!.price,
-      image: release!.cover,
-    });
-    toast.success(`${release!.title} added to your bag`);
-  }
-
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[320px_1fr]">
       <div>
@@ -64,32 +43,22 @@ function ReleasePage() {
         </p>
         <h1 className="font-display text-5xl text-fg">{release.title}</h1>
         <p className="mt-2 text-muted">{release.blurb}</p>
-        <p className="mt-4 font-display text-3xl text-fg">{kes(release.price)}</p>
-        {ownedPack ? (
-          <Link to="/library" className="btn-line mt-4 w-full">In your library</Link>
-        ) : (
-          <button type="button" className="btn-solid mt-4 w-full" onClick={buyPack}>
-            <ShoppingBag className="h-4 w-4" />
-            {release.type === "album" ? "Buy album" : "Buy single"}
-          </button>
-        )}
-        <p className="mt-3 text-xs text-dim">Pay once. Listen on this site for life. No download, even after you own it.</p>
+        <p className="mt-4 text-sm text-muted">Free to listen on this site for now. It does not download.</p>
       </div>
       <ol className="panel divide-y divide-border">
         {release.tracks.map((track, index) => {
           const active = player.now?.id === track.id;
-          const owned = ready && (ownedPack || ownsTrack(orders, release.slug, track.id) || accountOwns(account, release.slug, track.id));
           return (
             <li key={track.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
               <span className="w-6 text-sm text-dim tabular-nums">{index + 1}</span>
               <button
                 type="button"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-fg"
-                aria-label={owned ? `Play ${track.title}` : track.hasPreview ? `Preview ${track.title}` : `Pay to listen to ${track.title}`}
+                aria-label={active && player.playing ? `Pause ${track.title}` : `Play ${track.title}`}
                 onClick={() => {
-                  if (active && owned) player.toggle();
+                  if (active) player.toggle();
                   else {
-                    void playIfPaid(player, track, owned, {
+                    void playIfPaid(player, track, true, {
                       artist: `${site.artist} — ${release.title}`,
                       cover: release.cover,
                     });
@@ -100,31 +69,8 @@ function ReleasePage() {
               </button>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-fg">{track.title}{track.feat ? ` feat. ${track.feat}` : ""}</p>
-                <p className="text-xs text-dim tabular-nums">{clock(track.duration)}{!owned && track.hasPreview ? " · preview" : ""}</p>
+                <p className="text-xs text-dim tabular-nums">{clock(track.duration)}</p>
               </div>
-              {release.type === "album" ? (
-                owned ? (
-                  <span className="text-xs text-primary">Owned</span>
-                ) : (
-                  <button
-                    type="button"
-                    className="text-sm text-muted hover:text-fg"
-                    onClick={() => {
-                      add({
-                        kind: "music",
-                        ref: release.slug,
-                        trackId: track.id,
-                        title: track.title,
-                        price: track.price,
-                        image: release.cover,
-                      });
-                      toast.success(`${track.title} added`);
-                    }}
-                  >
-                    {kes(track.price)}
-                  </button>
-                )
-              ) : null}
             </li>
           );
         })}

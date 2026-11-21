@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { ShopCatalog } from "@/lib/catalog.server";
-import { authMiddleware } from "@/lib/auth/middleware";
 
 export const getShopCatalog = createServerFn({ method: "GET" }).handler(async () => {
   const { publicCatalog, readLiveCatalog } = await import("./catalog.server");
@@ -126,26 +125,14 @@ export const openPreview = createServerFn({ method: "POST" })
   });
 
 export const openTrack = createServerFn({ method: "POST" })
-  .middleware([authMiddleware])
   .validator((input: { trackId: string }) => {
     const trackId = String(input?.trackId ?? "");
     if (!/^[a-z0-9-]{1,60}$/.test(trackId)) throw new Error("Unknown track.");
     return { trackId };
   })
-  .handler(async ({ data, context }) => {
-    const { getCookie, setCookie } = await import("@tanstack/react-start/server");
-    const { grantFiles, userOwnsConfirmed } = await import("./catalog.server");
-    if (!(await userOwnsConfirmed(context.userId, data.trackId))) throw new Error("This song is still locked.");
+  .handler(async ({ data }) => {
+    const { grantFiles } = await import("./catalog.server");
     const files = await grantFiles([data.trackId]);
     if (files.length === 0) throw new Error("This song is not up yet.");
-    const already = (getCookie("bso_paid") ?? "").split(",").filter(Boolean);
-    const next = [...new Set([...already, ...files])].slice(0, 80);
-    setCookie("bso_paid", next.join(","), {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      secure: false,
-      maxAge: 60 * 60 * 24 * 365,
-    });
     return { src: `/api/audio/${files[0]}` };
   });

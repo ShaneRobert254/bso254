@@ -20,7 +20,7 @@ function CartPage() {
 
   return (
     <div>
-      <PageHero kicker="BAG" title="Your bag" text="Music can be paid for here. Merchandise coming soon, so clothes stay out of checkout." />
+      <PageHero kicker="BAG" title="Your bag" text="Merch is ordered on WhatsApp. The message lists every piece, size, and where to send it." />
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 lg:grid-cols-[1fr_280px]">
         {shown.length === 0 ? (
           <div className="panel p-8">
@@ -61,12 +61,12 @@ function CartPage() {
           </ul>
         )}
         <aside className="panel h-fit p-4">
-          <p className="text-sm text-muted">Music total</p>
-          <p className="font-display text-4xl">{kes(cartTotal(shown.filter((line) => line.kind === "music")))}</p>
-          <Link to="/checkout" className={`btn-solid mt-4 w-full ${shown.some((line) => line.kind === "music") ? "" : "pointer-events-none opacity-40"}`}>
-            Checkout music
+          <p className="text-sm text-muted">Order total</p>
+          <p className="font-display text-4xl">{kes(cartTotal(shown.filter((line) => line.kind === "merch")))}</p>
+          <Link to="/checkout" className={`btn-solid mt-4 w-full ${shown.some((line) => line.kind === "merch") ? "" : "pointer-events-none opacity-40"}`}>
+            Order on WhatsApp
           </Link>
-          {shown.some((line) => line.kind === "merch") ? <p className="mt-3 text-xs text-dim">Merchandise coming soon. Those pieces are not in this payment.</p> : null}
+          <p className="mt-3 text-xs text-dim">Songs are free to play. This bag is for merch only.</p>
         </aside>
       </div>
     </div>

@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { orderMessage } from "@/lib/order-text";
 import { kes, spacedLine } from "@/lib/format";
-import { site } from "@/lib/site";
-import { useOrders, type Order } from "@/lib/store";
+import { site, whatsappLink } from "@/lib/site";
+import { useOrders } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
 import { hiddenMeta } from "@/lib/seo";
 
@@ -9,14 +10,6 @@ export const Route = createFileRoute("/order/$id")({
   head: () => hiddenMeta("Order — Bso254"),
   component: OrderPage,
 });
-
-function receiptText(order: Order) {
-  const items = order.lines
-    .map((line) => `${line.title}${line.size ? ` (${line.size})` : ""}${line.qty > 1 ? ` x${line.qty}` : ""}`)
-    .join(", ");
-  const ship = order.address ? `\nShip to ${order.address}, ${order.city}` : "";
-  return `BSO254 ${order.id}\n${order.name}\n${order.email}\nPaid from ${order.phone}\n${items}\n${kes(order.total)}\nM-Pesa ${order.receipt ?? ""}${ship}`;
-}
 
 function OrderPage() {
   const { id } = Route.useParams();
@@ -36,14 +29,14 @@ function OrderPage() {
     );
   }
   const hasMusic = order.lines.some((line) => line.kind === "music");
-  const whatsapp = `https://wa.me/254${site.mpesaBusiness.slice(1)}?text=${encodeURIComponent(receiptText(order))}`;
+  const whatsapp = whatsappLink(orderMessage(order));
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <p className="text-xs tracking-[0.2em] text-primary">SENT TO {spacedLine(site.mpesaBusiness)}</p>
+      <p className="text-xs tracking-[0.2em] text-primary">WHATSAPP {spacedLine(site.mpesaBusiness)}</p>
       <h1 className="font-display text-6xl">{order.id}</h1>
       <p className="mt-2 text-muted">
-        {order.name}, M-Pesa code {order.receipt}. Paid from {order.phone}. Send this receipt so the order can be matched to the text on the business number.
+        {order.name}, {order.phone}. WhatsApp should have opened with this order. If it did not, press the button. Payment details come back in that chat.
       </p>
       <ul className="panel mt-6 divide-y divide-border">
         {order.lines.map((line) => (
@@ -63,7 +56,7 @@ function OrderPage() {
       </ul>
       {needsShip(order.address) ? <p className="mt-4 text-sm text-muted">Ship to {order.address}, {order.city}.</p> : null}
       <div className="mt-6 flex flex-wrap gap-3">
-        <a className="btn-solid" href={whatsapp} target="_blank" rel="noreferrer">Send receipt on WhatsApp</a>
+        <a className="btn-solid" href={whatsapp} target="_blank" rel="noreferrer">Open the WhatsApp order</a>
         {hasMusic ? <Link to="/library" className="btn-line">Open library</Link> : null}
         <Link to="/music" className="btn-line">Keep browsing</Link>
       </div>

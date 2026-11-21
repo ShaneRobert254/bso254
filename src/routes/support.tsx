@@ -7,12 +7,12 @@ export const Route = createFileRoute("/support")({ component: SupportPage });
 
 const faqs = [
   {
-    q: "Where is my music after I buy it?",
-    a: "Open Library on the same phone or computer you paid with. Press Play. The song stays there for life and does not download.",
+    q: "Where do I listen?",
+    a: "Press play on the song. Listening is free on this site for now, and the file does not download.",
   },
   {
     q: "Do you ship merch?",
-    a: "Yes, inside Kenya. Pay the business number on checkout with Pochi la Biashara, then send the receipt on WhatsApp. The piece ships after that text is on the business line.",
+    a: "Add the piece to your bag and press Order on WhatsApp. The message to 0111 209 244 lists the item, size, quantity, and your address. Payment details are sent back in that chat.",
   },
   {
     q: "How do I put the real songs in?",
