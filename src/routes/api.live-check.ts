@@ -4,13 +4,9 @@ export const Route = createFileRoute("/api/live-check")({
   server: {
     handlers: {
       GET: async () => {
-        const safe = (value: string) => value.replace(/postgres(?:ql)?:\/\/\S+/gi, "postgres://redacted").slice(0, 400);
+        const safe = (value: string) => value.replace(/postgres(?:ql)?:\/\/\S+/gi, "postgres://redacted").slice(0, 240);
         const out: Record<string, string> = {
-          vercel: process.env.VERCEL ?? "",
           database: process.env.DATABASE_URL ? "set" : "missing",
-          authUrl: process.env.BETTER_AUTH_URL ? "set" : "missing",
-          grokClient: process.env.GROK_AUTH_CLIENT_ID ? "set" : "missing",
-          authFlag: process.env.VITE_AUTH_ENABLED ?? "unset",
         };
         try {
           const { getSql } = await import("@/lib/db");
