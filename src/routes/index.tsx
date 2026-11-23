@@ -134,7 +134,6 @@ function Home() {
                       {release.type} · {release.year}
                     </p>
                   </div>
-                  <span className="tabular-nums text-sm text-muted">{kes(release.price)}</span>
                 </div>
               </article>
             );
@@ -191,7 +190,7 @@ function Home() {
           <p className="mt-3 text-muted">
             BSO254 carries the country code in the name. The climb is the whole record: cold mornings,
             night buses, and the turn from survival to a throne. Flip A Page is the latest chapter.
-            Run It Up is still locked for the people who show up early.
+            Run It Up plays here too. Every song on this site is free.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link to="/about" className="btn-solid">

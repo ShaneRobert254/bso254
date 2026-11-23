@@ -28,7 +28,6 @@ export function ReleaseCard({ release }: { release: Release }) {
             {release.type} · {release.year}
           </p>
         </div>
-        <span className="tabular-nums text-sm text-muted">{kes(release.price)}</span>
       </div>
     </Link>
   );

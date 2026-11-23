@@ -27,7 +27,7 @@ function MusicPage() {
       <PageHero
         kicker="THE VAULT"
         title="Unreleased & rare"
-        text="These do not live on Spotify. Pay once and the song stays open in this browser for life. It never downloads."
+        text="These do not live on Spotify. Press play. Listening is free on this site for now, and nothing downloads."
       />
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter music">

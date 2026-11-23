@@ -202,7 +202,7 @@ function AdminPage() {
 
       <section className="panel grid gap-3 p-4">
         <h2 className="font-display text-3xl">Payments waiting</h2>
-        <p className="text-sm text-muted">A song stays locked until you confirm the M-Pesa receipt. International cards are not switched on.</p>
+        <p className="text-sm text-muted">Songs are free to play. This list is only old receipts, if any are still waiting.</p>
         {pending.length === 0 ? <p className="text-sm text-dim">No receipts waiting.</p> : null}
         <ul className="grid gap-2">
           {pending.map((item) => (
