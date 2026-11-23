@@ -12,7 +12,7 @@ const faqs = [
   },
   {
     q: "Do you ship merch?",
-    a: "Add the piece to your bag and press Order on WhatsApp. The message to 0111 209 244 lists the item, size, quantity, and your address. Payment details are sent back in that chat.",
+    a: "Not yet. The pieces are on the site as a preview. Coming soon.",
   },
   {
     q: "How do I put the real songs in?",

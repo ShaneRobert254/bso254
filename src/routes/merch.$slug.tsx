@@ -1,10 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { toast } from "sonner";
-import { cn } from "@/lib/cn";
-import { kes } from "@/lib/format";
 import { useShop } from "@/lib/shop";
-import { useCart } from "@/lib/store";
 import { getProduct } from "@/lib/catalog";
 import { pageMeta } from "@/lib/seo";
 
@@ -23,8 +18,6 @@ function ProductPage() {
   const { slug } = Route.useParams();
   const { products } = useShop();
   const product = products.find((item) => item.slug === slug);
-  const [size, setSize] = useState(product?.sizes[0] ?? "");
-  const add = useCart((state) => state.add);
   if (!product) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-20">
@@ -41,41 +34,8 @@ function ProductPage() {
         <p className="text-xs tracking-[0.2em] text-dim uppercase">{product.category}</p>
         <h1 className="font-display text-6xl text-fg">{product.name}</h1>
         <p className="mt-3 text-muted">{product.blurb}</p>
-        <p className="mt-4 font-display text-4xl">{kes(product.price)}</p>
-        <p className="mt-6 text-sm text-muted">Size</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {product.sizes.map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setSize(item)}
-              className={cn(
-                "h-11 min-w-11 rounded-full border px-4 text-sm",
-                size === item ? "border-primary bg-primary text-fg" : "border-border text-muted",
-              )}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          className="btn-solid mt-6"
-          onClick={() => {
-            add({
-              kind: "merch",
-              ref: product.slug,
-              title: product.name,
-              price: product.price,
-              image: product.image,
-              size: size || product.sizes[0],
-            });
-            toast.success(`${product.name} added. Send the order on WhatsApp from your bag.`);
-          }}
-        >
-          Add to bag
-        </button>
-        <p className="mt-3 text-sm text-muted">You send the order on WhatsApp to 0111 209 244. Payment details come back in that chat. Nothing is charged on this page.</p>
+        <p className="mt-6 text-sm tracking-[0.18em] text-primary uppercase">Coming soon</p>
+        <p className="mt-2 text-sm text-muted">These pieces are not ready yet. Nothing can be ordered or paid for.</p>
         <ul className="mt-6 grid gap-2 text-sm text-muted">
           {product.details.map((detail) => (
             <li key={detail}>{detail}</li>

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { PageHero } from "@/components/cards";
 import { kes } from "@/lib/format";
-import { cartTotal, useCart } from "@/lib/store";
+import { useCart } from "@/lib/store";
 import { useHydrated } from "@/lib/use-hydrated";
 import { hiddenMeta } from "@/lib/seo";
 
@@ -20,7 +20,7 @@ function CartPage() {
 
   return (
     <div>
-      <PageHero kicker="BAG" title="Your bag" text="Merch is ordered on WhatsApp. The message lists every piece, size, and where to send it." />
+      <PageHero kicker="BAG" title="Your bag" text="Merch is coming soon, so nothing in here can be ordered yet." />
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 lg:grid-cols-[1fr_280px]">
         {shown.length === 0 ? (
           <div className="panel p-8">
@@ -61,12 +61,10 @@ function CartPage() {
           </ul>
         )}
         <aside className="panel h-fit p-4">
-          <p className="text-sm text-muted">Order total</p>
-          <p className="font-display text-4xl">{kes(cartTotal(shown.filter((line) => line.kind === "merch")))}</p>
-          <Link to="/checkout" className={`btn-solid mt-4 w-full ${shown.some((line) => line.kind === "merch") ? "" : "pointer-events-none opacity-40"}`}>
-            Order on WhatsApp
-          </Link>
-          <p className="mt-3 text-xs text-dim">Songs are free to play. This bag is for merch only.</p>
+          <p className="text-sm text-muted">Merch</p>
+          <p className="font-display text-4xl">Coming soon</p>
+          <p className="btn-solid mt-4 w-full pointer-events-none opacity-40">Order on WhatsApp</p>
+          <p className="mt-3 text-xs text-dim">The pieces are not ready. Songs stay free to play.</p>
         </aside>
       </div>
     </div>

@@ -5,7 +5,6 @@ import { Crown } from "@/components/logo";
 import { JoinForm } from "@/components/join-form";
 import { Platforms } from "@/components/platforms";
 import { gallery, type Release } from "@/lib/catalog";
-import { kes } from "@/lib/format";
 import { playIfPaid } from "@/lib/listen";
 import { usePlayer } from "@/lib/player";
 import { useShop } from "@/lib/shop";
@@ -149,7 +148,7 @@ function Home() {
               <h2 className="font-display text-5xl text-fg sm:text-6xl">The Drip</h2>
             </div>
             <Link to="/merch" className="btn-line">
-              Shop the drop
+              Coming soon
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -167,7 +166,7 @@ function Home() {
                     <h3 className="font-semibold text-fg">{product.name}</h3>
                     <p className="text-xs tracking-wide text-dim uppercase">{product.category}</p>
                   </div>
-                  <span className="tabular-nums text-sm text-muted">{kes(product.price)}</span>
+                  <span className="text-xs tracking-wide text-primary uppercase">Coming soon</span>
                 </div>
               </Link>
             ))}

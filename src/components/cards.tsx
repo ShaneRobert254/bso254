@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import type { Product, Release } from "@/lib/catalog";
-import { kes } from "@/lib/format";
 
 export function ReleaseCard({ release }: { release: Release }) {
   return (
@@ -49,7 +48,7 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
       <div className="mt-3 flex items-baseline justify-between gap-2">
         <h3 className="font-semibold text-fg">{product.name}</h3>
-        <span className="tabular-nums text-sm text-muted">{kes(product.price)}</span>
+        <span className="text-xs tracking-wide text-primary uppercase">Coming soon</span>
       </div>
       <p className="text-xs tracking-wide text-dim uppercase">{product.category}</p>
     </Link>
