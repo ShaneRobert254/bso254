@@ -286,6 +286,21 @@ test("published VITE_PUBLIC_HOSTNAME wins over request Host for og:image", () =>
   }
 });
 
+test("a pinned publicHost still emits the share image on a Vercel host", () => {
+  const prev = process.env.VITE_PUBLIC_HOSTNAME;
+  delete process.env.VITE_PUBLIC_HOSTNAME;
+  try {
+    const out = injectGrokPwaHead("<html><head><title>BSO254</title></head></html>", {
+      host: "bso254.vercel.app",
+      site: { title: "BSO254", card: "custom", image: "/og.jpg", publicHost: "bso254.vercel.app" },
+    });
+    assert.match(out, /property="og:image" content="https:\/\/bso254\.vercel\.app\/og\.jpg"/);
+  } finally {
+    if (prev === undefined) delete process.env.VITE_PUBLIC_HOSTNAME;
+    else process.env.VITE_PUBLIC_HOSTNAME = prev;
+  }
+});
+
 test("vercel Host without a public hostname emits no og:image", () => {
   const prev = process.env.VITE_PUBLIC_HOSTNAME;
   delete process.env.VITE_PUBLIC_HOSTNAME;

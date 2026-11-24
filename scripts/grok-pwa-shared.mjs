@@ -110,10 +110,25 @@ export function publicAppHost(hostHeader) {
  * request host / X-Forwarded-Host. Never prefer request Host on a published
  * app — Envoy rewrites it to `*.vercel.app`.
  */
-export function resolvePublicHost(hostHeader) {
-  return (
-    publicAppHost(process.env?.VITE_PUBLIC_HOSTNAME) || publicAppHost(hostHeader)
-  );
+export function resolvePublicHost(hostHeader, site = {}) {
+  const fromEnv = publicAppHost(process.env?.VITE_PUBLIC_HOSTNAME);
+  if (fromEnv) return fromEnv;
+  const fromRequest = publicAppHost(hostHeader);
+  if (fromRequest) return fromRequest;
+  const raw = String(hostHeader ?? "")
+    .split(",")[0]
+    .trim()
+    .split(":")[0]
+    .toLowerCase();
+  if (!isVercelSystemHost(raw)) return "";
+  const pinned = String(site.publicHost ?? "")
+    .trim()
+    .toLowerCase()
+    .split(":")[0];
+  if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(pinned)) {
+    return "";
+  }
+  return pinned;
 }
 
 export function isInstallQuery(url) {
@@ -347,7 +362,7 @@ export function grokOgHeadTags({
   cwd = process.cwd(),
 } = {}) {
   const title = resolveOgTitle(site, appName, host, documentTitle);
-  const publicHost = resolvePublicHost(host);
+  const publicHost = resolvePublicHost(host, site);
   const tags = [
     `<meta name="twitter:card" content="summary_large_image">`,
     `<meta property="og:title" content="${escapeHtml(title)}">`,
